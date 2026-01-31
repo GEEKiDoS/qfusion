@@ -75,7 +75,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #define MAX_TEXTURE_UNITS				8
 
-#define MAX_GLSL_UNIFORM_BONES			100
+#define MAX_GLSL_UNIFORM_BONES			128
 #define MAX_GLSL_UNIFORM_INSTANCES		40
 
 #define GAMMARAMP_STRIDE				4096

@@ -850,16 +850,8 @@ static void R_TextureFormat( int flags, int samples, int *comp, int *format, int
 	}
 	else if( flags & IT_FRAMEBUFFER )
 	{
-		if( samples == 4 )
-		{
-			*comp = *format = GL_RGBA;
-			*type = glConfig.ext.rgb8_rgba8 ? GL_UNSIGNED_BYTE : GL_UNSIGNED_SHORT_4_4_4_4;
-		}
-		else
-		{
-			*comp = *format = GL_RGB;
-			*type = glConfig.ext.rgb8_rgba8 ? GL_UNSIGNED_BYTE : GL_UNSIGNED_SHORT_5_6_5;
-		}
+		*comp = *format = samples == 4 ? GL_RGBA : GL_RGB;
+		*type = qgl_VERSION_3_0 ? GL_FLOAT : GL_UNSIGNED_BYTE;
 	}
 	else
 	{

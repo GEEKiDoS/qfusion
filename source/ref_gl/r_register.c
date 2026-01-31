@@ -361,18 +361,18 @@ static bool R_RegisterGLExtensions( void )
 	}
 
 	glConfig.ext.texture_filter_anisotropic = qgl_ARB_texture_filter_anisotropic;
-	glConfig.ext.meminfo = 1;
-	glConfig.ext.gpu_memory_info = 1;
-	glConfig.ext.gpu_shader5 = 1;
-	glConfig.ext.texture_lod = 1;
-	glConfig.ext.packed_depth_stencil = 1;
-	glConfig.ext.ES3_compatibility = 1;
-	glConfig.ext.half_float_vertex = 1;
-	glConfig.ext.texture_edge_clamp = 1;
-	glConfig.ext.texture_cube_map = 1;
-	glConfig.ext.depth_texture = 1;
-	glConfig.ext.shadow = 1;
-	glConfig.ext.texture_non_power_of_two = 1;
+	glConfig.ext.meminfo = qgl_ATI_meminfo;
+	glConfig.ext.gpu_memory_info = qgl_NVX_gpu_memory_info;
+	glConfig.ext.gpu_shader5 = qgl_ARB_gpu_shader5;
+	glConfig.ext.texture_lod = qgl_ARB_shader_texture_lod;
+	glConfig.ext.packed_depth_stencil = qgl_EXT_packed_depth_stencil;
+	glConfig.ext.ES3_compatibility = qgl_ARB_ES3_compatibility;
+	glConfig.ext.half_float_vertex = qgl_ARB_half_float_vertex;
+	glConfig.ext.texture_edge_clamp = qgl_SGIS_texture_edge_clamp;
+	glConfig.ext.texture_cube_map = qgl_ARB_texture_cube_map;
+	glConfig.ext.depth_texture = qgl_ARB_depth_texture;
+	glConfig.ext.shadow = qgl_ARB_shadow;
+	glConfig.ext.texture_non_power_of_two = qgl_ARB_texture_non_power_of_two;
 
 #ifndef USE_SDL2
 #ifdef GLX_VERSION
@@ -484,8 +484,8 @@ static bool R_RegisterGLExtensions( void )
 
 		// require GLSL 1.20+ for GPU skinning
 		if( glConfig.shadingLanguageVersion >= 120 ) {
-			// the maximum amount of bones we can handle in a vertex shader (2 vec4 uniforms per vertex)
-			glConfig.maxGLSLBones = bound( 0, glConfig.maxVertexUniformComponents / 8 - 19, r_maxglslbones->integer );
+			// the maximum amount of bones we can handle in a vertex shader (2 + 2 vec4 uniforms per vertex), reserve 32 slots for other uniforms
+			glConfig.maxGLSLBones = bound( 0, glConfig.maxVertexUniformComponents / 16 - (32 * 4), r_maxglslbones->integer );
 		} else {
 			glConfig.maxGLSLBones = 0;
 		}
