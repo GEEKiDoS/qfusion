@@ -32,6 +32,7 @@
 #include <assert.h>
 #include "../ref_gl/r_local.h"
 #include "win_glw.h"
+#include "wingdi.h"
 
 #define WINDOW_STYLE	( WS_OVERLAPPED|WS_BORDER|WS_CAPTION|WS_VISIBLE|WS_SYSMENU|WS_MINIMIZEBOX )
 
@@ -285,11 +286,11 @@ rserr_t GLimp_SetMode( int x, int y, int width, int height, int displayFrequency
 */
 void GLimp_Shutdown( void )
 {
-	if( qwglMakeCurrent && !qwglMakeCurrent( NULL, NULL ) )
+	if( !wglMakeCurrent( NULL, NULL ) )
 		ri.Com_Printf( "ref_gl::R_Shutdown() - wglMakeCurrent failed\n" );
 	if( glw_state.hGLRC )
 	{
-		if( qwglDeleteContext && !qwglDeleteContext( glw_state.hGLRC ) )
+		if( !wglDeleteContext( glw_state.hGLRC ) )
 			ri.Com_Printf( "ref_gl::R_Shutdown() - wglDeleteContext failed\n" );
 		glw_state.hGLRC = NULL;
 	}
@@ -443,13 +444,13 @@ static int GLimp_InitGL( void )
 	** startup the OpenGL subsystem by creating a context and making
 	** it current
 	*/
-	if( ( glw_state.hGLRC = qwglCreateContext( glw_state.hDC ) ) == 0 )
+	if( ( glw_state.hGLRC = wglCreateContext( glw_state.hDC ) ) == 0 )
 	{
 		ri.Com_Printf( "GLimp_Init() - qwglCreateContext failed\n" );
 		goto fail;
 	}
 
-	if( !qwglMakeCurrent( glw_state.hDC, glw_state.hGLRC ) )
+	if( !wglMakeCurrent( glw_state.hDC, glw_state.hGLRC ) )
 	{
 		ri.Com_Printf( "GLimp_Init() - qwglMakeCurrent failed\n" );
 		goto fail;
@@ -465,7 +466,7 @@ static int GLimp_InitGL( void )
 fail:
 	if( glw_state.hGLRC )
 	{
-		qwglDeleteContext( glw_state.hGLRC );
+		wglDeleteContext( glw_state.hGLRC );
 		glw_state.hGLRC = NULL;
 	}
 
@@ -488,18 +489,6 @@ bool GLimp_GetGammaRamp( size_t stride, unsigned short *psize, unsigned short *r
 	{
 		// only supports gamma ramps with 256 mappings per channel
 		return false;
-	}
-
-	if( qwglGetDeviceGammaRamp3DFX )
-	{
-		if( qwglGetDeviceGammaRamp3DFX( glw_state.hDC, ramp256 ) )
-		{
-			*psize = 256;
-			memcpy( ramp,          ramp256,       256*sizeof(*ramp) );
-			memcpy( ramp+  stride, ramp256+  256, 256*sizeof(*ramp) );
-			memcpy( ramp+2*stride, ramp256+2*256, 256*sizeof(*ramp) );
-			return true;
-		}
 	}
 
 	if( GetDeviceGammaRamp( glw_state.hDC, ramp256 ) )
@@ -528,10 +517,7 @@ void GLimp_SetGammaRamp( size_t stride, unsigned short size, unsigned short *ram
 	memcpy( ramp256+  256, ramp+  stride, size*sizeof(*ramp));
 	memcpy( ramp256+2*256, ramp+2*stride, size*sizeof(*ramp));
 
-	if( qwglGetDeviceGammaRamp3DFX )
-		qwglSetDeviceGammaRamp3DFX( glw_state.hDC, ramp256 );
-	else
-		SetDeviceGammaRamp( glw_state.hDC, ramp256 );
+	SetDeviceGammaRamp( glw_state.hDC, ramp256 );
 }
 
 /*
@@ -551,7 +537,7 @@ void GLimp_BeginFrame( void )
 */
 void GLimp_EndFrame( void )
 {
-	if( !qwglSwapBuffers( glw_state.hDC ) )
+	if( !SwapBuffers( glw_state.hDC ) )
 		Sys_Error( "GLimp_EndFrame() - SwapBuffers() failed!" );
 }
 
@@ -614,7 +600,7 @@ void GLimp_SetSwapInterval( int swapInterval )
 */
 bool GLimp_MakeCurrent( void *context, void *surface )
 {
-	if( qwglMakeCurrent && !qwglMakeCurrent( glw_state.hDC, context ) ) {
+	if( wglMakeCurrent( glw_state.hDC, context ) ) {
 		return false;
 	}
 	return true;
@@ -649,12 +635,12 @@ void GLimp_UpdatePendingWindowSurface( void )
 */
 bool GLimp_SharedContext_Create( void **context, void **surface )
 {
-	HGLRC ctx = qwglCreateContext( glw_state.hDC );
+	HGLRC ctx = wglCreateContext( glw_state.hDC );
 	if( !ctx ) {
 		return false;
 	}
 
-	qwglShareLists( glw_state.hGLRC, ctx );
+	wglShareLists( glw_state.hGLRC, ctx );
 	*context = ctx;
 	if( surface )
 		*surface = NULL;
@@ -666,7 +652,7 @@ bool GLimp_SharedContext_Create( void **context, void **surface )
 */
 void GLimp_SharedContext_Destroy( void *context, void *surface )
 {
-	if( qwglDeleteContext ) {
-		qwglDeleteContext( context );
+	if( wglDeleteContext ) {
+		wglDeleteContext( context );
 	}
 }

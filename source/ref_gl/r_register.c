@@ -150,272 +150,16 @@ typedef struct
 #define GL_EXTENSION_FUNC_EXT(name,func) { name, (void ** const)func }
 #define GL_EXTENSION_FUNC(name) GL_EXTENSION_FUNC_EXT("gl"#name,&(qgl##name))
 
-#ifndef GL_ES_VERSION_2_0
-
-/* GL_ARB_multitexture */
-static const gl_extension_func_t gl_ext_multitexture_ARB_funcs[] =
-{
-	 GL_EXTENSION_FUNC(ActiveTextureARB)
-	,GL_EXTENSION_FUNC(ClientActiveTextureARB)
-
-	,GL_EXTENSION_FUNC_EXT(NULL,NULL)
-};
-
-/* GL_ARB_vertex_buffer_object */
-static const gl_extension_func_t gl_ext_vertex_buffer_object_ARB_funcs[] =
-{
-	 GL_EXTENSION_FUNC(BindBufferARB)
-	,GL_EXTENSION_FUNC(DeleteBuffersARB)
-	,GL_EXTENSION_FUNC(GenBuffersARB)
-	,GL_EXTENSION_FUNC(BufferDataARB)
-	,GL_EXTENSION_FUNC(BufferSubDataARB)
-
-	,GL_EXTENSION_FUNC_EXT(NULL,NULL)
-};
-
-
-static const gl_extension_func_t gl_ext_debug_message_callback[] = {
-	GL_EXTENSION_FUNC(DebugMessageCallback),
-	GL_EXTENSION_FUNC_EXT(NULL,NULL)
-
-};
-
-/* GL_EXT_draw_range_elements */
-static const gl_extension_func_t gl_ext_draw_range_elements_EXT_funcs[] =
-{
-	 GL_EXTENSION_FUNC(DrawRangeElementsEXT)
-	,GL_EXTENSION_FUNC_EXT("glDrawRangeElements",&qglDrawRangeElementsEXT)
-
-	,GL_EXTENSION_FUNC_EXT(NULL,NULL)
-};
-
-/* GL_ARB_GLSL (meta extension) */
-static const gl_extension_func_t gl_ext_GLSL_ARB_funcs[] =
-{
-	 GL_EXTENSION_FUNC(DeleteObjectARB)
-	,GL_EXTENSION_FUNC(DetachObjectARB)
-	,GL_EXTENSION_FUNC(CreateShaderObjectARB)
-	,GL_EXTENSION_FUNC(ShaderSourceARB)
-	,GL_EXTENSION_FUNC(CompileShaderARB)
-	,GL_EXTENSION_FUNC(CreateProgramObjectARB)
-	,GL_EXTENSION_FUNC(AttachObjectARB)
-	,GL_EXTENSION_FUNC(LinkProgramARB)
-	,GL_EXTENSION_FUNC(UseProgramObjectARB)
-	,GL_EXTENSION_FUNC(ValidateProgramARB)
-	,GL_EXTENSION_FUNC(Uniform1fARB)
-	,GL_EXTENSION_FUNC(Uniform2fARB)
-	,GL_EXTENSION_FUNC(Uniform3fARB)
-	,GL_EXTENSION_FUNC(Uniform4fARB)
-	,GL_EXTENSION_FUNC(Uniform1iARB)
-	,GL_EXTENSION_FUNC(Uniform2iARB)
-	,GL_EXTENSION_FUNC(Uniform3iARB)
-	,GL_EXTENSION_FUNC(Uniform4iARB)
-	,GL_EXTENSION_FUNC(Uniform1fvARB)
-	,GL_EXTENSION_FUNC(Uniform2fvARB)
-	,GL_EXTENSION_FUNC(Uniform3fvARB)
-	,GL_EXTENSION_FUNC(Uniform4fvARB)
-	,GL_EXTENSION_FUNC(Uniform1ivARB)
-	,GL_EXTENSION_FUNC(Uniform2ivARB)
-	,GL_EXTENSION_FUNC(Uniform3ivARB)
-	,GL_EXTENSION_FUNC(Uniform4ivARB)
-	,GL_EXTENSION_FUNC(UniformMatrix2fvARB)
-	,GL_EXTENSION_FUNC(UniformMatrix3fvARB)
-	,GL_EXTENSION_FUNC(UniformMatrix4fvARB)
-	,GL_EXTENSION_FUNC(GetObjectParameterivARB)
-	,GL_EXTENSION_FUNC(GetInfoLogARB)
-	,GL_EXTENSION_FUNC(GetAttachedObjectsARB)
-	,GL_EXTENSION_FUNC(GetUniformLocationARB)
-	,GL_EXTENSION_FUNC(GetActiveUniformARB)
-	,GL_EXTENSION_FUNC(GetUniformfvARB)
-	,GL_EXTENSION_FUNC(GetUniformivARB)
-	,GL_EXTENSION_FUNC(GetShaderSourceARB)
-
-	,GL_EXTENSION_FUNC(VertexAttribPointerARB)
-	,GL_EXTENSION_FUNC(EnableVertexAttribArrayARB)
-	,GL_EXTENSION_FUNC(DisableVertexAttribArrayARB)
-	,GL_EXTENSION_FUNC(BindAttribLocationARB)
-	,GL_EXTENSION_FUNC(GetActiveAttribARB)
-	,GL_EXTENSION_FUNC(GetAttribLocationARB)
-
-	,GL_EXTENSION_FUNC_EXT(NULL,NULL)
-};
-
-/* GL_ARB_GLSL_core (meta extension) */
-static const gl_extension_func_t gl_ext_GLSL_core_ARB_funcs[] =
-{
-	 GL_EXTENSION_FUNC(DeleteProgram)
-	,GL_EXTENSION_FUNC(DeleteShader)
-	,GL_EXTENSION_FUNC(DetachShader)
-	,GL_EXTENSION_FUNC(CreateShader)
-	,GL_EXTENSION_FUNC(CreateProgram)
-	,GL_EXTENSION_FUNC(AttachShader)
-	,GL_EXTENSION_FUNC(UseProgram)
-	,GL_EXTENSION_FUNC(GetProgramiv)
-	,GL_EXTENSION_FUNC(GetShaderiv)
-	,GL_EXTENSION_FUNC(GetProgramInfoLog)
-	,GL_EXTENSION_FUNC(GetShaderInfoLog)
-	,GL_EXTENSION_FUNC(GetAttachedShaders)
-
-	,GL_EXTENSION_FUNC_EXT(NULL,NULL)
-};
-
-/* GL_ARB_GLSL130 (meta extension) */
-static const gl_extension_func_t gl_ext_GLSL130_ARB_funcs[] =
-{
-	GL_EXTENSION_FUNC(BindFragDataLocation)
-
-	,GL_EXTENSION_FUNC_EXT(NULL,NULL)
-};
-
-/* GL_ARB_draw_instanced */
-static const gl_extension_func_t gl_ext_draw_instanced_ARB_funcs[] =
-{
-	 GL_EXTENSION_FUNC(DrawArraysInstancedARB)
-	,GL_EXTENSION_FUNC(DrawElementsInstancedARB)
-
-	,GL_EXTENSION_FUNC_EXT(NULL,NULL)
-};
-
-/* GL_ARB_instanced_arrays */
-static const gl_extension_func_t gl_ext_instanced_arrays_ARB_funcs[] =
-{
-	 GL_EXTENSION_FUNC(VertexAttribDivisorARB)
-
-	,GL_EXTENSION_FUNC_EXT(NULL,NULL)
-};
-
-/* GL_ARB_get_program_binary */
-static const gl_extension_func_t gl_ext_get_program_binary_ARB_funcs[] =
-{
-	 GL_EXTENSION_FUNC(ProgramParameteri)
-	,GL_EXTENSION_FUNC(GetProgramBinary)
-	,GL_EXTENSION_FUNC(ProgramBinary)
-
-	,GL_EXTENSION_FUNC_EXT(NULL,NULL)
-};
-
-/* GL_EXT_framebuffer_object */
-static const gl_extension_func_t gl_ext_framebuffer_object_EXT_funcs[] =
-{
-	 GL_EXTENSION_FUNC(IsRenderbufferEXT)
- 	,GL_EXTENSION_FUNC(BindRenderbufferEXT)
- 	,GL_EXTENSION_FUNC(DeleteRenderbuffersEXT)
- 	,GL_EXTENSION_FUNC(GenRenderbuffersEXT)
- 	,GL_EXTENSION_FUNC(RenderbufferStorageEXT)
- 	,GL_EXTENSION_FUNC(GetRenderbufferParameterivEXT)
- 	,GL_EXTENSION_FUNC(IsFramebufferEXT)
- 	,GL_EXTENSION_FUNC(BindFramebufferEXT)
- 	,GL_EXTENSION_FUNC(DeleteFramebuffersEXT)
- 	,GL_EXTENSION_FUNC(GenFramebuffersEXT)
-	,GL_EXTENSION_FUNC(CheckFramebufferStatusEXT)
-	,GL_EXTENSION_FUNC(FramebufferTexture1DEXT)
-	,GL_EXTENSION_FUNC(FramebufferTexture2DEXT)
-	,GL_EXTENSION_FUNC(FramebufferRenderbufferEXT)
-	,GL_EXTENSION_FUNC(GetFramebufferAttachmentParameterivEXT)
-	,GL_EXTENSION_FUNC(GenerateMipmapEXT)
-
-	,GL_EXTENSION_FUNC_EXT(NULL,NULL)
-};
-
-/* GL_EXT_framebuffer_blit */
-static const gl_extension_func_t gl_ext_framebuffer_blit_EXT_funcs[] =
-{
-	GL_EXTENSION_FUNC(BlitFramebufferEXT)
-
-	,GL_EXTENSION_FUNC_EXT(NULL,NULL)
-};
-
-/* GL_ARB_texture_compression */
-static const gl_extension_func_t gl_ext_texture_compression_ARB_funcs[] =
-{
-	 GL_EXTENSION_FUNC(CompressedTexImage2DARB)
-	,GL_EXTENSION_FUNC(CompressedTexSubImage2DARB)
-
-	,GL_EXTENSION_FUNC_EXT(NULL,NULL)
-};
-
-/* GL_EXT_blend_func_separate */
-static const gl_extension_func_t gl_ext_blend_func_separate_EXT_funcs[] =
-{
-	 GL_EXTENSION_FUNC(BlendFuncSeparateEXT)
-
-	,GL_EXTENSION_FUNC_EXT(NULL,NULL)
-};
-
-/* GL_EXT_texture3D */
-static const gl_extension_func_t gl_ext_texture3D_EXT_funcs[] =
-{
-	 GL_EXTENSION_FUNC(TexImage3DEXT)
-	,GL_EXTENSION_FUNC(TexSubImage3DEXT)
-
-	,GL_EXTENSION_FUNC_EXT(NULL,NULL)
-};
-
-#else // GL_ES_VERSION_2_0
-
-/* GL_ANGLE_framebuffer_blit */
-static const gl_extension_func_t gl_ext_framebuffer_blit_ANGLE_funcs[] =
-{
-	GL_EXTENSION_FUNC(BlitFramebufferANGLE)
-
-	,GL_EXTENSION_FUNC_EXT(NULL,NULL)
-};
-
-/* GL_NV_framebuffer_blit */
-static const gl_extension_func_t gl_ext_framebuffer_blit_NV_funcs[] =
-{
-	GL_EXTENSION_FUNC(BlitFramebufferNV)
-
-	,GL_EXTENSION_FUNC_EXT(NULL,NULL)
-};
-
-/* GL_OES_get_program_binary */
-static const gl_extension_func_t gl_ext_get_program_binary_OES_funcs[] =
-{
-	 GL_EXTENSION_FUNC(GetProgramBinaryOES)
-	,GL_EXTENSION_FUNC(ProgramBinaryOES)
-
-	,GL_EXTENSION_FUNC_EXT(NULL,NULL)
-};
-
-/* GL_OES_texture_3D */
-static const gl_extension_func_t gl_ext_texture_3D_OES_funcs[] =
-{
-	 GL_EXTENSION_FUNC(TexImage3DOES)
-	,GL_EXTENSION_FUNC(TexSubImage3DOES)
-
-	,GL_EXTENSION_FUNC_EXT(NULL,NULL)
-};
-
-#endif // GL_ES_VERSION_2_0
-
-#ifndef USE_SDL2
-
 #ifdef _WIN32
 
 /* WGL_EXT_swap_interval */
 static const gl_extension_func_t wgl_ext_swap_interval_EXT_funcs[] =
 {
-	 GL_EXTENSION_FUNC_EXT("wglSwapIntervalEXT",&qwglSwapIntervalEXT)
-
-	,GL_EXTENSION_FUNC_EXT(NULL,NULL)
+	 GL_EXTENSION_FUNC_EXT("wglSwapIntervalEXT", &qwglSwapIntervalEXT),
+	 GL_EXTENSION_FUNC_EXT(NULL,NULL)
 };
 
 #endif
-
-#ifdef GLX_VERSION
-
-/* GLX_SGI_swap_control */
-static const gl_extension_func_t glx_ext_swap_control_SGI_funcs[] =
-{
-	 GL_EXTENSION_FUNC_EXT("glXSwapIntervalSGI",&qglXSwapIntervalSGI)
-
-	,GL_EXTENSION_FUNC_EXT(NULL,NULL)
-};
-
-#endif
-
-#endif // USE_SDL2
 
 
 static void R_RegisterFatalExt(const char* ext) {
@@ -427,7 +171,7 @@ static bool R_TryLoadGLProcAddress(const gl_extension_func_t *funcs)
 	const gl_extension_func_t *func = funcs;
 	if( func ) {
 		do {
-			*( func->pointer ) = (void *)qglGetProcAddress( (const GLubyte *)func->name );
+			*( func->pointer ) = (void *)qglGetProcAddress( func->name );
 			if( !*( func->pointer ) ) {
 				Com_Printf( "failed to load function: %s\n", func->name);
 				break;
@@ -551,67 +295,72 @@ static bool R_RegisterGLExtensions( void )
 {
 	memset( &glConfig.ext, 0, sizeof( glextinfo_t ) );
 
-	if( !R_TryLoadGLProcAddress( gl_ext_vertex_buffer_object_ARB_funcs ) ) {
+	if( !qgl_ARB_vertex_buffer_object ) {
 		R_RegisterFatalExt( "gl_ext_vertex_buffer_object_ARB_funcs " );
 	}
 
-	if( !R_TryLoadGLProcAddress( gl_ext_framebuffer_object_EXT_funcs ) ) {
+	if( !qgl_EXT_framebuffer_object ) {
 		R_RegisterFatalExt( "gl_ext_framebuffer_object_EXT_funcs" );
 	}
 
-	if( !R_TryLoadGLProcAddress( gl_ext_multitexture_ARB_funcs ) ) {
+	if( !qgl_ARB_multitexture ) {
 		R_RegisterFatalExt( "gl_ext_multitexture_ARB_funcs" );
 	}
 
-	if( !R_TryLoadGLProcAddress( gl_ext_GLSL_ARB_funcs ) ) {
+	if( !qgl_ARB_shader_objects ) {
 		R_RegisterFatalExt( "gl_ext_GLSL_ARB_funcs" );
 	}
 
-	if( !R_TryLoadGLProcAddress( gl_ext_blend_func_separate_EXT_funcs ) ) {
+	if( !qgl_EXT_blend_func_separate ) {
 		R_RegisterFatalExt( "gl_ext_blend_func_separate_EXT_funcs" );
 	}
 
-	if(qglDebugMessageCallback && R_TryLoadGLProcAddress( gl_ext_debug_message_callback ) ) {
+	if( qgl_KHR_debug || qgl_VERSION_4_3 ) {
 		qglDebugMessageCallback( __R_GlCallback, NULL );
+	} else if( qgl_AMD_debug_output ) {
+		qglDebugMessageCallbackAMD( __R_GlCallback, NULL );
+	} else if( qgl_ARB_debug_output ) {
+		qglDebugMessageCallbackARB( __R_GlCallback, NULL );
 	}
 
-	if( R_TryLoadGLProcAddress( gl_ext_GLSL_core_ARB_funcs ) ) {
+	if( qgl_VERSION_2_0 ) {
 		glConfig.ext.GLSL_core = 1;
 	}
 
-	if( R_TryLoadGLProcAddress( gl_ext_GLSL130_ARB_funcs ) ) {
+	if( qgl_VERSION_3_0 ) {
 		glConfig.ext.GLSL130 = 1;
 	}
 	
-	if( R_TryLoadGLProcAddress( gl_ext_draw_range_elements_EXT_funcs ) ) {
+	if( qgl_VERSION_3_2 ) {
 		glConfig.ext.draw_range_elements = 1;
 	}
 
-	if( R_TryLoadGLProcAddress( gl_ext_framebuffer_blit_EXT_funcs ) ) {
+	if( qgl_EXT_framebuffer_blit ) {
 		glConfig.ext.framebuffer_blit = 1;
 	}
 
-	if( R_TryLoadGLProcAddress( gl_ext_texture_compression_ARB_funcs ) ) {
+	if( qgl_ARB_texture_compression ) {
 		glConfig.ext.texture_compression = 1;
 	}
 
-	if( R_TryLoadGLProcAddress( gl_ext_draw_instanced_ARB_funcs ) ) {
+	if( qgl_ARB_draw_instanced ) {
 		glConfig.ext.draw_instanced = 1;
 	}
-	if( R_TryLoadGLProcAddress( gl_ext_instanced_arrays_ARB_funcs ) ) {
+
+	if( qgl_ARB_instanced_arrays ) {
 		glConfig.ext.instanced_arrays = 1;
 	}
 
-	if( R_TryLoadGLProcAddress( gl_ext_get_program_binary_ARB_funcs ) ) {
+	if( qgl_VERSION_4_1 ) {
 		glConfig.ext.get_program_binary = 1;
 	}
 
-	if( R_TryLoadGLProcAddress( gl_ext_texture3D_EXT_funcs ) ) {
+	if( qgl_EXT_texture3D ) {
 		glConfig.ext.texture3D = 1;
 		glConfig.ext.texture_array = 1;
 	}
 
-	glConfig.ext.texture_filter_anisotropic = 1;
+	glConfig.ext.texture_filter_anisotropic = qgl_ARB_texture_filter_anisotropic;
 	glConfig.ext.meminfo = 1;
 	glConfig.ext.gpu_memory_info = 1;
 	glConfig.ext.gpu_shader5 = 1;
@@ -819,26 +568,26 @@ static void R_PrintMemoryInfo( void )
 
 	if( glConfig.ext.gpu_memory_info ) {
 		// NV
-		qglGetIntegerv( GPU_MEMORY_INFO_TOTAL_AVAILABLE_MEMORY_NVX, mem );
+		qglGetIntegerv( GL_GPU_MEMORY_INFO_TOTAL_AVAILABLE_MEMORY_NVX, mem );
 		Com_Printf( "total: %i MB\n", mem[0] >>10 );
 
-		qglGetIntegerv( GPU_MEMORY_INFO_DEDICATED_VIDMEM_NVX, mem );
+		qglGetIntegerv( GL_GPU_MEMORY_INFO_DEDICATED_VIDMEM_NVX, mem );
 		Com_Printf( "dedicated: %i MB\n", mem[0] >>10 );
 
-		qglGetIntegerv( GPU_MEMORY_INFO_CURRENT_AVAILABLE_VIDMEM_NVX, mem );
+		qglGetIntegerv( GL_GPU_MEMORY_INFO_CURRENT_AVAILABLE_VIDMEM_NVX, mem );
 		Com_Printf( "available: %i MB\n", mem[0] >>10 );
 
-		qglGetIntegerv( GPU_MEMORY_INFO_EVICTION_COUNT_NVX, mem );
+		qglGetIntegerv( GL_GPU_MEMORY_INFO_EVICTION_COUNT_NVX, mem );
 		Com_Printf( "eviction count: %i MB\n", mem[0] >> 10 );
 
-		qglGetIntegerv( GPU_MEMORY_INFO_EVICTED_MEMORY_NVX, mem );
+		qglGetIntegerv( GL_GPU_MEMORY_INFO_EVICTED_MEMORY_NVX, mem );
 		Com_Printf( "totally evicted: %i MB\n", mem[0] >>10 );
 	}
 	else if( glConfig.ext.meminfo ) {
 		// ATI
-		qglGetIntegerv( VBO_FREE_MEMORY_ATI, mem );
-		qglGetIntegerv( TEXTURE_FREE_MEMORY_ATI, mem+4 );
-		qglGetIntegerv( RENDERBUFFER_FREE_MEMORY_ATI, mem+8 );
+		qglGetIntegerv( GL_VBO_FREE_MEMORY_ATI, mem );
+		qglGetIntegerv( GL_TEXTURE_FREE_MEMORY_ATI, mem+4 );
+		qglGetIntegerv( GL_RENDERBUFFER_FREE_MEMORY_ATI, mem+8 );
 
 		Com_Printf( "total memory free in the pool: (VBO:%i, Tex:%i, RBuf:%i) MB\n", mem[0] >> 10, mem[4] >> 10, mem[8] >> 10 );
 		Com_Printf( "largest available free block in the pool: (V:%i, Tex:%i, RBuf:%i) MB\n", mem[5] >> 10, mem[4] >> 10, mem[9] >> 10 );
@@ -1103,7 +852,7 @@ rserr_t R_Init( const char *applicationName, const char *screenshotPrefix, int s
 	void *hinstance, void *wndproc, void *parenthWnd, 
 	bool verbose )
 {
-	qgl_initerr_t initerr;
+	memset( &glConfig, 0, sizeof( glConfig ) );
 
 	r_mempool = R_AllocPool( NULL, "Rendering Frontend" );
 	r_verbose = verbose;
@@ -1113,31 +862,6 @@ rserr_t R_Init( const char *applicationName, const char *screenshotPrefix, int s
 	if( !screenshotPrefix ) screenshotPrefix = "";
 
 	R_Register( screenshotPrefix );
-
-	memset( &glConfig, 0, sizeof(glConfig) );
-
-	// initialize our QGL dynamic bindings
-	const char *dllname = NULL;
-	const qgl_driverinfo_t *driver = QGL_GetDriverInfo();
-	if( driver ) {
-		dllname = driver->dllname;
-	}
-init_qgl:
-	initerr = QGL_Init( gl_driver ? gl_driver->string : dllname );
-	if( initerr != qgl_initerr_ok )
-	{
-		QGL_Shutdown();
-		Com_Printf( "ref_gl::R_Init() - could not load \"%s\"\n", gl_driver ? gl_driver->string : dllname );
-
-		if( ( initerr == qgl_initerr_invalid_driver ) && gl_driver && strcmp( gl_driver->string, dllname ) )
-		{
-			ri.Cvar_ForceSet( gl_driver->name, dllname );
-			goto init_qgl;
-		}
-
-		return rserr_invalid_driver;
-	}
-
 
 	// initialize OS-specific parts of OpenGL
 	if( !GLimp_Init( applicationName, hinstance, wndproc, parenthWnd, iconResource, iconXPM ) )
@@ -1159,6 +883,21 @@ init_qgl:
 */
 static rserr_t R_PostInit( void )
 {
+	// initialize our QGL dynamic bindings
+	const char *dllname = NULL;
+	const qgl_driverinfo_t *driver = QGL_GetDriverInfo();
+	if( driver ) {
+		dllname = driver->dllname;
+	}
+
+	qgl_initerr_t initerr = QGL_Init( NULL );
+	if( initerr != qgl_initerr_ok ) {
+		QGL_Shutdown();
+		Com_Printf( "ref_gl::R_PostInit() - QGL_Init failed\n");
+
+		return rserr_invalid_driver;
+	}
+
 	GLenum glerr;
 
 	glConfig.hwGamma = GLimp_GetGammaRamp( GAMMARAMP_STRIDE, &glConfig.gammaRampSize, glConfig.originalGammaRamp );
@@ -1172,7 +911,7 @@ static rserr_t R_PostInit( void )
 	glConfig.rendererString = (const char *)qglGetString( GL_RENDERER );
 	glConfig.versionString = (const char *)qglGetString( GL_VERSION );
 	glConfig.extensionsString = (const char *)qglGetString( GL_EXTENSIONS );
-	glConfig.glwExtensionsString = (const char *)qglGetGLWExtensionsString ();
+	glConfig.glwExtensionsString = NULL;
 	glConfig.shadingLanguageVersionString = (const char *)qglGetString( GL_SHADING_LANGUAGE_VERSION_ARB );
 
 	if( !glConfig.vendorString ) glConfig.vendorString = "";

@@ -1383,7 +1383,7 @@ void R_Finish( void )
 
 void R_Flush( void )
 {
-	qglFlush();
+	if(qglFlush) qglFlush();
 }
 
 void R_DeferDataSync( void )

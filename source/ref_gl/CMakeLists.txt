@@ -44,7 +44,7 @@ else()
 			"../win32/win_qgl.c"
 			)
 
-		set(REF_GL_PLATFORM_LIBRARIES "")
+		set(REF_GL_PLATFORM_LIBRARIES "opengl32")
 	endif()
 
 	if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")

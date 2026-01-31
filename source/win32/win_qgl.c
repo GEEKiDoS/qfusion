@@ -48,7 +48,7 @@ and Zephaniah E. Hull. Adapted by Victor Luchits for qfusion project.
 #define GL_GLEXT_LEGACY
 
 #include <windows.h>
-#include <GL/gl.h>
+#include "../ref_gl/qgl.h"
 #include "../qcommon/qcommon.h"
 #include "win_glw.h"
 
@@ -64,8 +64,6 @@ and Zephaniah E. Hull. Adapted by Victor Luchits for qfusion project.
 #define QGL_EGL( type, name, params )
 #define QGL_EGL_EXT( type, name, params )
 
-#include "../ref_gl/qgl.h"
-
 #undef QGL_EGL_EXT
 #undef QGL_EGL
 #undef QGL_GLX_EXT
@@ -76,8 +74,7 @@ and Zephaniah E. Hull. Adapted by Victor Luchits for qfusion project.
 #undef QGL_FUNC_OPT
 #undef QGL_FUNC
 
-static const char *_qglGetGLWExtensionsString( void );
-static const char *_qglGetGLWExtensionsStringInit( void );
+static bool qgl_inited;
 
 /*
 ** QGL_Shutdown
@@ -86,33 +83,7 @@ static const char *_qglGetGLWExtensionsStringInit( void );
 */
 void QGL_Shutdown( void )
 {
-	if( glw_state.hinstOpenGL )
-		FreeLibrary( glw_state.hinstOpenGL );
-	glw_state.hinstOpenGL = NULL;
-
-	qglGetGLWExtensionsString = NULL;
-
-#define QGL_FUNC( type, name, params ) ( q ## name ) = NULL;
-#define QGL_FUNC_OPT( type, name, params ) ( q ## name ) = NULL;
-#define QGL_EXT( type, name, params ) ( q ## name ) = NULL;
-#define QGL_WGL( type, name, params ) ( q ## name ) = NULL;
-#define QGL_WGL_EXT( type, name, params ) ( q ## name ) = NULL;
-#define QGL_GLX( type, name, params )
-#define QGL_GLX_EXT( type, name, params )
-#define QGL_EGL( type, name, params )
-#define QGL_EGL_EXT( type, name, params )
-
-#include "../ref_gl/qgl.h"
-
-#undef QGL_EGL_EXT
-#undef QGL_EGL
-#undef QGL_GLX_EXT
-#undef QGL_GLX
-#undef QGL_WGL_EXT
-#undef QGL_WGL
-#undef QGL_EXT
-#undef QGL_FUNC_OPT
-#undef QGL_FUNC
+	qgl_inited = false;
 }
 
 #pragma warning( disable : 4113 4133 4047 )
@@ -144,75 +115,9 @@ const qgl_driverinfo_t *QGL_GetDriverInfo( void )
 */
 qgl_initerr_t QGL_Init( const char *dllname )
 {
-	if( ( glw_state.hinstOpenGL = LoadLibrary( dllname ) ) == 0 )
-	{
-		char *buf;
+	if( qgl_inited )
+		return qgl_initerr_ok;
 
-		buf = NULL;
-		FormatMessage( FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, NULL, GetLastError(), MAKELANGID( LANG_NEUTRAL, SUBLANG_DEFAULT ), (LPTSTR) &buf, 0, NULL );
-		if( buf )
-		{
-			Com_Printf( "%s\n", buf );
-			MessageBox( NULL, va( "QGL_Init: Failed to load %s: %s\n", dllname, buf ), "Error", 0 /* MB_OK */ );
-			LocalFree( buf );
-		}
-		else
-		{
-			MessageBox( NULL, va( "QGL_Init: Failed to load %s\n", dllname ), "Error", 0 /* MB_OK */ );
-		}
-		return qgl_initerr_invalid_driver;
-	}
-
-#define QGL_FUNC( type, name, params ) ( q ## name ) = ( void * )GetProcAddress( glw_state.hinstOpenGL, # name ); \
-	if( !( q ## name ) ) { Com_Printf( "QGL_Init: Failed to get address for %s\n", # name ); return qgl_initerr_invalid_driver; }
-#define QGL_FUNC_OPT( type, name, params ) ( q ## name ) = ( void * )GetProcAddress( glw_state.hinstOpenGL, # name );
-#define QGL_EXT( type, name, params ) ( q ## name ) = NULL;
-#define QGL_WGL( type, name, params ) ( q ## name ) = ( void * )GetProcAddress( glw_state.hinstOpenGL, # name ); \
-	if( !( q ## name ) ) { Com_Printf( "QGL_Init: Failed to get address for %s\n", # name ); return qgl_initerr_invalid_driver; }
-#define QGL_WGL_EXT( type, name, params ) ( q ## name ) = NULL;
-#define QGL_GLX( type, name, params )
-#define QGL_GLX_EXT( type, name, params )
-#define QGL_EGL( type, name, params )
-#define QGL_EGL_EXT( type, name, params )
-
-#include "../ref_gl/qgl.h"
-
-#undef QGL_EGL_EXT
-#undef QGL_EGL
-#undef QGL_GLX_EXT
-#undef QGL_GLX
-#undef QGL_WGL_EXT
-#undef QGL_WGL
-#undef QGL_EXT
-#undef QGL_FUNC_OPT
-#undef QGL_FUNC
-
-	qglGetGLWExtensionsString = _qglGetGLWExtensionsStringInit;
-
-	return qgl_initerr_ok;
-}
-
-/*
-** qglGetProcAddress
-*/
-void *qglGetProcAddress( const GLubyte *procName )
-{
-	return (void *)qwglGetProcAddress( (LPCSTR)procName );
-}
-
-/*
-** qglGetGLWExtensionsString
-*/
-static const char *_qglGetGLWExtensionsStringInit( void )
-{
-	qwglGetExtensionsStringEXT = ( void * )qglGetProcAddress( (const GLubyte *)"wglGetExtensionsStringEXT" );
-	qglGetGLWExtensionsString = _qglGetGLWExtensionsString;
-	return qglGetGLWExtensionsString();
-}
-
-static const char *_qglGetGLWExtensionsString( void )
-{
-	if( qwglGetExtensionsStringEXT )
-		return qwglGetExtensionsStringEXT();
-	return NULL;
+	qgl_inited = !!gladLoadGL();
+	return qgl_inited ? qgl_initerr_ok : qgl_initerr_invalid_driver;
 }
