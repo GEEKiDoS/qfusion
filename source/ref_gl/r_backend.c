@@ -285,19 +285,24 @@ void RB_ClearDepth( float depth )
 /*
 * RB_LoadCameraMatrix
 */
-void RB_LoadCameraMatrix( const mat4_t m )
+void RB_LoadCameraMatrix( const mat4_t m, const mat4_t last )
 {
 	Matrix4_Copy( m, rb.cameraMatrix );
+	Matrix4_Copy( last, rb.lastCameraMatrix );
 }
 
 /*
 * RB_LoadObjectMatrix
 */
-void RB_LoadObjectMatrix( const mat4_t m )
+void RB_LoadObjectMatrix( const mat4_t m, const mat4_t last )
 {
 	Matrix4_Copy( m, rb.objectMatrix );
 	Matrix4_MultiplyFast( rb.cameraMatrix, m, rb.modelviewMatrix );
 	Matrix4_Multiply( rb.projectionMatrix, rb.modelviewMatrix, rb.modelviewProjectionMatrix );
+
+	// Calculate last mvp for motion vector
+	Matrix4_MultiplyFast( rb.lastCameraMatrix, last, rb.lastModelViewMatrix );
+	Matrix4_Multiply( rb.projectionMatrix, rb.lastModelViewMatrix, rb.lastModelViewProjectionMatrix );
 }
 
 /*
@@ -307,6 +312,7 @@ void RB_LoadProjectionMatrix( const mat4_t m )
 {
 	Matrix4_Copy( m, rb.projectionMatrix );
 	Matrix4_Multiply( m, rb.modelviewMatrix, rb.modelviewProjectionMatrix );
+	Matrix4_Multiply( rb.projectionMatrix, rb.lastModelViewMatrix, rb.lastModelViewProjectionMatrix );
 }
 
 /*
@@ -916,7 +922,7 @@ void RB_FlushDynamicMeshes( void )
 			offsety = draw->offset[1];
 			m[12] = transx + offsetx;
 			m[13] = transy + offsety;
-			RB_LoadObjectMatrix( m );
+			RB_LoadObjectMatrix( m, m );
 		}
 
 		RB_DrawElements(
@@ -934,7 +940,7 @@ void RB_FlushDynamicMeshes( void )
 	if( offsetx || offsety ) {
 		m[12] = transx;
 		m[13] = transy;
-		RB_LoadObjectMatrix( m );
+		RB_LoadObjectMatrix( m, m );
 	}
 }
 

@@ -286,13 +286,13 @@ static void R_BlitTextureToScrFbo( const refdef_t *fd, image_t *image, int dstFb
 	Matrix4_Identity( m );
 	Matrix4_Scale2D( m, fw, fh );
 	Matrix4_Translate2D( m, x, y );
-	RB_LoadObjectMatrix( m );
+	RB_LoadObjectMatrix( m, m );
 
 	RB_BindShader( NULL, &s, NULL );
 	RB_BindVBO( rsh.postProcessingVBO->index, GL_TRIANGLES );
 	RB_DrawElements( 0, 4, 0, 6, 0, 0, 0, 0 );
 
-	RB_LoadObjectMatrix( mat4x4_identity );
+	RB_LoadObjectMatrix( mat4x4_identity, mat4x4_identity );
 
 	// restore 2D viewport and scissor
 	RB_Viewport( 0, 0, rf.frameBufferWidth, rf.frameBufferHeight );

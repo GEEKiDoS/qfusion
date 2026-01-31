@@ -1325,8 +1325,35 @@ void R_DrawSkeletalSurf( const entity_t *e, const shader_t *shader, const mfog_t
 
 	if( hardwareTransform )
 	{
+		dualquat_t *prevBonePoseRelativeDQ = NULL;
+		
+		// 计算上一帧的骨骼变换（用于运动向量）
+		if( e->oldboneposes && e->boneposes && e->backlerp < 1.0f ) {
+			// 使用上一帧的骨骼姿势计算变换
+			bonepose_t *prevBp = e->oldboneposes;
+			bonepose_t *prevOldBp = e->boneposes; // 对于上一帧来说，当前帧是"old"
+			float prevFrontlerp = 1.0f - e->backlerp; // 上一帧的插值因子
+			
+			// 临时缓冲区用于存储上一帧的骨骼变换
+			static bonepose_t prevTempBonepose[MAX_GLSL_UNIFORM_BONES];
+			dualquat_t prevBoneDQ[MAX_GLSL_UNIFORM_BONES];
+			
+			// 插值上一帧的骨骼姿势
+			for( i = 0; i < skmodel->numbones && i < MAX_GLSL_UNIFORM_BONES; i++ ) {
+				DualQuat_Lerp( prevOldBp[i].dualquat, prevBp[i].dualquat, prevFrontlerp, prevTempBonepose[i].dualquat );
+			}
+			
+			// 生成上一帧的相对对偶四元数
+			for( i = 0; i < skmodel->numbones && i < MAX_GLSL_UNIFORM_BONES; i++ ) {
+				DualQuat_Multiply( prevTempBonepose[i].dualquat, skmodel->invbaseposes[i].dualquat, prevBoneDQ[i] );
+				DualQuat_Normalize( prevBoneDQ[i] );
+			}
+			
+			prevBonePoseRelativeDQ = prevBoneDQ;
+		}
+		
 		RB_BindVBO( skmesh->vbo->index, GL_TRIANGLES );
-		RB_SetBonesData( skmodel->numbones, bonePoseRelativeDQ, skmesh->maxWeights );
+		RB_SetBonesData( skmodel->numbones, bonePoseRelativeDQ, prevBonePoseRelativeDQ, skmesh->maxWeights );
 		RB_DrawElements( 0, skmesh->numverts, 0, skmesh->numtris * 3, 
 			0, skmesh->numverts, 0, skmesh->numtris * 3 );
 	}

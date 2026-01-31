@@ -299,10 +299,10 @@ static void AppActivate( BOOL fActive, BOOL minimize, BOOL destroy )
 		CL_SoundModule_Activate( ActiveApp );
 	}
 
-	if( win_noalttab->integer )
+	/*if( win_noalttab->integer )
 		VID_EnableAltTab( !ActiveApp );
 	if( win_nowinkeys->integer )
-		VID_EnableWinKeys( !ActiveApp );
+		VID_EnableWinKeys( !ActiveApp );*/
 
 	VID_AppActivate( fActive, destroy );
 }

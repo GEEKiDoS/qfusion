@@ -139,6 +139,12 @@ typedef struct entity_s
 	int oldframe;
 	bonepose_t *oldboneposes;			// pretransformed boneposes for old frame
 	float backlerp;						// 0.0 = current, 1.0 = old
+	
+	// 上一帧变换信息（用于运动向量）
+	bool haveLastInfo;
+	mat3_t lastAxis;					// 上一帧旋转
+	vec3_t lastOrigin;					// 上一帧位置
+	float lastScale;					// 上一帧缩放
 
 	/*
 	** texturing

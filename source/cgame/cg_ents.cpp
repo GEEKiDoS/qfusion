@@ -641,6 +641,11 @@ static void CG_AddLinkedModel( centity_t *cent )
 			CG_PlaceModelOnTag( &ent, &cent->ent, &tag );
 	}
 
+	AnglesToAxis( cent->prev.angles, ent.lastAxis );
+	memcpy( ent.lastOrigin, cent->prev.origin, sizeof( vec3_t ) );
+	ent.lastScale = 1.0f;
+	ent.haveLastInfo = true;
+
 	CG_AddColoredOutLineEffect( &ent, cent->effects, 
 		cent->outlineColor[0], cent->outlineColor[1], cent->outlineColor[2], cent->outlineColor[3] );
 	CG_AddEntityToScene( &ent );
@@ -935,6 +940,11 @@ static void CG_AddGenericEnt( centity_t *cent )
 
 	if( !cent->current.modelindex )
 		return;
+
+	AnglesToAxis( cent->prev.angles, cent->ent.lastAxis );
+	memcpy( cent->ent.lastOrigin, cent->prev.origin, sizeof( vec3_t ) );
+	cent->ent.lastScale = 1.0f;
+	cent->ent.haveLastInfo = true;
 
 	CG_AddEntityToScene( &cent->ent );
 

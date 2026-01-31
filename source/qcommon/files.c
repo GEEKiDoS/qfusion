@@ -4367,7 +4367,7 @@ void FS_Init( void )
 	homedir = Sys_FS_GetHomeDirectory();
 	if( homedir != NULL )
 #ifdef PUBLIC_BUILD
-		fs_usehomedir = Cvar_Get( "fs_usehomedir", "1", CVAR_NOSET );
+		fs_usehomedir = Cvar_Get( "fs_usehomedir", "0", CVAR_NOSET );
 #else
 		fs_usehomedir = Cvar_Get( "fs_usehomedir", "0", CVAR_NOSET );
 #endif

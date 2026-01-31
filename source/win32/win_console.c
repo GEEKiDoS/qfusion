@@ -158,6 +158,8 @@ static void PrintColoredText( const char *s )
 */
 void Sys_ConsoleOutput( char *string )
 {
+	OutputDebugStringA( string );
+
 	DWORD dummy;
 	char text[MAX_CONSOLETEXT+2];	/* need 2 chars for the \r's */
 

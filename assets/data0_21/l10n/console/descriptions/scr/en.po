@@ -1,8 +1,0 @@
-# (c) Team Forbidden LLC. All Rights Reserved.
-
-#. Console/scr
-msgid "scr_consize"
-msgstr "<0.1-1.0> Size of the console.\n"
-"^610% of the screen: scr_consize \"0.1\"\n"
-"^650% of the screen: scr_consize \"0.5\"\n"
-"^6100% of the screen: scr_consize \"1.0\""

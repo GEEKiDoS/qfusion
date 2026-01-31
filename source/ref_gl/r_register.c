@@ -125,6 +125,8 @@ cvar_t *gl_driver;
 cvar_t *gl_cull;
 cvar_t *r_multithreading;
 
+cvar_t *r_debugMotionVector;
+
 static bool	r_verbose;
 static bool	r_postinit;
 
@@ -975,6 +977,9 @@ static void R_Register( const char *screenshotsPrefix )
 	r_drawflat = ri.Cvar_Get( "r_drawflat", "0", CVAR_ARCHIVE );
 	r_wallcolor = ri.Cvar_Get( "r_wallcolor", "255 255 255", CVAR_ARCHIVE );
 	r_floorcolor = ri.Cvar_Get( "r_floorcolor", "255 153 0", CVAR_ARCHIVE );
+
+	// 调试运动向量显示 (0=关闭, 1=显示运动向量, 2=显示幅度)
+	r_debugMotionVector = ri.Cvar_Get( "r_debugMotionVector", "0", CVAR_CHEAT );
 
 	// make sure we rebuild our 3D texture after vid_restart
 	r_wallcolor->modified = r_floorcolor->modified = true;

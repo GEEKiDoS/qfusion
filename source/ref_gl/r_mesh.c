@@ -504,6 +504,7 @@ static void _R_DrawSurfaces( drawList_t *list )
 				if( infiniteProj ) {
 					Matrix4_Copy( rn.projectionMatrix, projectionMatrix );
 					Matrix4_PerspectiveProjectionToInfinity( Z_NEAR, projectionMatrix, glConfig.depthEpsilon );
+
 					RB_LoadProjectionMatrix( projectionMatrix );
 				}
 				else {
@@ -531,7 +532,7 @@ static void _R_DrawSurfaces( drawList_t *list )
 			if( batchDrawSurf ) {
 				// don't transform batched surfaces
 				if( !prevBatchDrawSurf ) {
-					RB_LoadObjectMatrix( mat4x4_identity );
+					RB_LoadObjectMatrix( mat4x4_identity, mat4x4_identity );
 				}
 			}
 			else {

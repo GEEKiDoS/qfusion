@@ -60,6 +60,7 @@ typedef struct glsl_program_s
 	struct loc_s {
 		int			ModelViewMatrix,
 					ModelViewProjectionMatrix,
+					LastModelViewProjectionMatrix,
 
 					ZRange,
 
@@ -112,6 +113,7 @@ typedef struct glsl_program_s
 					AttrBonesIndices,
 					AttrBonesWeights,
 					DualQuats,
+					PrevDualQuats,
 
 					InstancePoints,
 
@@ -632,6 +634,7 @@ static const glsl_feature_t glsl_features_material[] =
 	{ GLSL_SHADER_COMMON_AFUNC_GT0, "#define QF_ALPHATEST(a) { if ((a) <= 0.0) discard; }\n", "_afunc_gt0" },
 
 	{ GLSL_SHADER_COMMON_TC_MOD, "#define APPLY_TC_MOD\n", "_tc_mod" },
+	{ GLSL_SHADER_COMMON_MOTION_VECTORS, "#define APPLY_MOTION_VECTORS\n", "_motion" }, // 运动向量支持
 
 	{ GLSL_SHADER_MATERIAL_LIGHTSTYLE3, "#define NUM_LIGHTMAPS 4\n#define qf_lmvec01 vec4\n#define qf_lmvec23 vec4\n", "_ls3" },
 	{ GLSL_SHADER_MATERIAL_LIGHTSTYLE2, "#define NUM_LIGHTMAPS 3\n#define qf_lmvec01 vec4\n#define qf_lmvec23 vec2\n", "_ls2" },
@@ -1114,6 +1117,7 @@ QF_GLSL_PI \
 #define QF_BUILTIN_GLSL_QUAT_TRANSFORM \
 "qf_attribute vec4 a_BonesIndices, a_BonesWeights;\n" \
 "uniform vec4 u_DualQuats[MAX_UNIFORM_BONES*2];\n" \
+"uniform vec4 u_PrevDualQuats[MAX_UNIFORM_BONES*2];\n" \
 "\n" \
 QF_BUILTIN_GLSL_QUAT_TRANSFORM_OVERLOAD \
 "#define QF_DUAL_QUAT_TRANSFORM_TANGENT\n" \
@@ -2066,6 +2070,7 @@ void RP_UpdateShaderUniforms( int elem,
 */
 void RP_UpdateViewUniforms( int elem, 
 	const mat4_t modelviewMatrix, const mat4_t modelviewProjectionMatrix,
+	const mat4_t lastModelViewProjectionMatrix,
 	const vec3_t viewOrigin, const mat3_t viewAxis, 
 	const float mirrorSide, 
 	int viewport[4],
@@ -2078,6 +2083,9 @@ void RP_UpdateViewUniforms( int elem,
 	}
 	if( program->loc.ModelViewProjectionMatrix >= 0 ) {
 		qglUniformMatrix4fvARB( program->loc.ModelViewProjectionMatrix, 1, GL_FALSE, modelviewProjectionMatrix );
+	}
+	if( program->loc.LastModelViewProjectionMatrix >= 0 ) {
+		qglUniformMatrix4fvARB( program->loc.LastModelViewProjectionMatrix, 1, GL_FALSE, lastModelViewProjectionMatrix );
 	}
 
 	if( program->loc.ZRange >= 0 ) {
@@ -2403,7 +2411,7 @@ void RP_UpdateShadowsUniforms( int elem, int numShadows, const shadowGroup_t **g
 * 
 * Set uniform values for animation dual quaternions
 */
-void RP_UpdateBonesUniforms( int elem, unsigned int numBones, dualquat_t *animDualQuat )
+void RP_UpdateBonesUniforms( int elem, unsigned int numBones, dualquat_t *animDualQuat, dualquat_t *prevAnimDualQuat )
 {
 	glsl_program_t *program = r_glslprograms + elem - 1;
 
@@ -2414,6 +2422,11 @@ void RP_UpdateBonesUniforms( int elem, unsigned int numBones, dualquat_t *animDu
 		return;
 	}
 	qglUniform4fvARB( program->loc.DualQuats, numBones * 2, &animDualQuat[0][0] );
+
+	if( program->loc.PrevDualQuats < 0 ) {
+		return;
+	}
+	qglUniform4fvARB( program->loc.PrevDualQuats, numBones * 2, &prevAnimDualQuat[0][0] );
 }
 
 /*
@@ -2480,6 +2493,8 @@ static void RP_GetUniformLocations( glsl_program_t *program )
 
 	program->loc.ModelViewMatrix = qglGetUniformLocationARB( program->object, "u_ModelViewMatrix" );
 	program->loc.ModelViewProjectionMatrix = qglGetUniformLocationARB( program->object, "u_ModelViewProjectionMatrix" );
+	program->loc.LastModelViewProjectionMatrix = qglGetUniformLocationARB( program->object, "u_LastModelViewProjectionMatrix" );
+	Com_Printf( "%s: program->loc.LastModelViewProjectionMatrix = %d\n", program->name, program->loc.LastModelViewProjectionMatrix );
 
 	program->loc.ZRange = qglGetUniformLocationARB( program->object, "u_ZRange" );
 
@@ -2612,6 +2627,7 @@ static void RP_GetUniformLocations( glsl_program_t *program )
 	program->loc.SoftParticlesScale = qglGetUniformLocationARB( program->object, "u_SoftParticlesScale" );
 
 	program->loc.DualQuats = qglGetUniformLocationARB( program->object, "u_DualQuats" );
+	program->loc.PrevDualQuats = qglGetUniformLocationARB( program->object, "u_PrevDualQuats" );
 
 	program->loc.InstancePoints = qglGetUniformLocationARB( program->object, "u_InstancePoints" );
 	

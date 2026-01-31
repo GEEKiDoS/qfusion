@@ -461,7 +461,7 @@ void VID_CheckChanges( void )
 	bool vid_ref_was_active = vid_ref_active;
 	bool verbose = vid_ref_verbose || vid_ref_sound_restart;
 
-	if( win_noalttab->modified ) {
+	/*if( win_noalttab->modified ) {
 		VID_EnableAltTab( win_noalttab->integer ? false : true );
 		win_noalttab->modified = false;
 	}
@@ -469,7 +469,7 @@ void VID_CheckChanges( void )
 	if( win_nowinkeys->modified ) {
 		VID_EnableWinKeys( win_nowinkeys->integer ? false : true );
 		win_nowinkeys->modified = false;
-	}
+	}*/
 
 	if( vid_fullscreen->modified ) {
 		if( vid_ref_active ) {

@@ -40,7 +40,7 @@ void R_TransformForWorld( void )
 	Matrix4_Identity( rn.objectMatrix );
 	Matrix4_Copy( rn.cameraMatrix, rn.modelviewMatrix );
 
-	RB_LoadObjectMatrix( mat4x4_identity );
+	RB_LoadObjectMatrix( mat4x4_identity, mat4x4_identity );
 }
 
 /*
@@ -49,7 +49,7 @@ void R_TransformForWorld( void )
 void R_TranslateForEntity( const entity_t *e )
 {
 	Matrix4_Identity( rn.objectMatrix );
-
+	
 	rn.objectMatrix[0] = e->scale;
 	rn.objectMatrix[5] = e->scale;
 	rn.objectMatrix[10] = e->scale;
@@ -57,7 +57,7 @@ void R_TranslateForEntity( const entity_t *e )
 	rn.objectMatrix[13] = e->origin[1];
 	rn.objectMatrix[14] = e->origin[2];
 
-	RB_LoadObjectMatrix( rn.objectMatrix );
+	RB_LoadObjectMatrix( rn.objectMatrix, rn.objectMatrix );
 }
 
 /*
@@ -104,9 +104,41 @@ void R_TransformForEntity( const entity_t *e )
 	rn.objectMatrix[14] = e->origin[2];
 	rn.objectMatrix[15] = 1.0;
 
-	Matrix4_MultiplyFast( rn.cameraMatrix, rn.objectMatrix, rn.modelviewMatrix );
+	if( e->haveLastInfo ) {
+		if( e->lastScale != 1.0f ) {
+			rn.lastObjectMatrix[0] = e->lastAxis[0] * e->lastScale;
+			rn.lastObjectMatrix[1] = e->lastAxis[1] * e->lastScale;
+			rn.lastObjectMatrix[2] = e->lastAxis[2] * e->lastScale;
+			rn.lastObjectMatrix[4] = e->lastAxis[3] * e->lastScale;
+			rn.lastObjectMatrix[5] = e->lastAxis[4] * e->lastScale;
+			rn.lastObjectMatrix[6] = e->lastAxis[5] * e->lastScale;
+			rn.lastObjectMatrix[8] = e->lastAxis[6] * e->lastScale;
+			rn.lastObjectMatrix[9] = e->lastAxis[7] * e->lastScale;
+			rn.lastObjectMatrix[10] = e->lastAxis[8] * e->lastScale;
+		} else {
+			rn.lastObjectMatrix[0] = e->lastAxis[0];
+			rn.lastObjectMatrix[1] = e->lastAxis[1];
+			rn.lastObjectMatrix[2] = e->lastAxis[2];
+			rn.lastObjectMatrix[4] = e->lastAxis[3];
+			rn.lastObjectMatrix[5] = e->lastAxis[4];
+			rn.lastObjectMatrix[6] = e->lastAxis[5];
+			rn.lastObjectMatrix[8] = e->lastAxis[6];
+			rn.lastObjectMatrix[9] = e->lastAxis[7];
+			rn.lastObjectMatrix[10] = e->lastAxis[8];
+		}
 
-	RB_LoadObjectMatrix( rn.objectMatrix );
+		rn.lastObjectMatrix[3] = 0;
+		rn.lastObjectMatrix[7] = 0;
+		rn.lastObjectMatrix[11] = 0;
+		rn.lastObjectMatrix[12] = e->lastOrigin[0];
+		rn.lastObjectMatrix[13] = e->lastOrigin[1];
+		rn.lastObjectMatrix[14] = e->lastOrigin[2];
+		rn.lastObjectMatrix[15] = 1.0;
+
+		RB_LoadObjectMatrix( rn.objectMatrix, rn.lastObjectMatrix );
+	} else {
+		RB_LoadObjectMatrix( rn.objectMatrix, rn.objectMatrix );
+	}
 }
 
 /*
@@ -472,8 +504,8 @@ void R_Set2DMode( bool enable )
 		RB_Viewport( 0, 0, width, height );
 
 		RB_LoadProjectionMatrix( rn.projectionMatrix );
-		RB_LoadCameraMatrix( mat4x4_identity );
-		RB_LoadObjectMatrix( mat4x4_identity );
+		RB_LoadCameraMatrix( mat4x4_identity, mat4x4_identity );
+		RB_LoadObjectMatrix( mat4x4_identity, mat4x4_identity );
 
 		RB_SetShaderStateMask( ~0, GLSTATE_NO_DEPTH_TEST );
 
@@ -1051,9 +1083,9 @@ static void R_SetupGL( void )
 
 	RB_LoadProjectionMatrix( rn.projectionMatrix );
 
-	RB_LoadCameraMatrix( rn.cameraMatrix );
+	RB_LoadCameraMatrix( rn.cameraMatrix, rn.lastCameraMatrix );
 
-	RB_LoadObjectMatrix( mat4x4_identity );
+	RB_LoadObjectMatrix( mat4x4_identity, mat4x4_identity );
 
 	if( rn.renderFlags & RF_FLIPFRONTFACE )
 		RB_FlipFrontFace();
@@ -1179,6 +1211,9 @@ void R_RenderView( const refdef_t *fd )
 
 	rn.refdef = *fd;
 	rn.numVisSurfaces = 0;
+
+	// backup last shits
+	Matrix4_Copy( rn.cameraMatrix, rn.lastCameraMatrix );
 
 	// load view matrices with default far clip value
 	R_SetupViewMatrices();

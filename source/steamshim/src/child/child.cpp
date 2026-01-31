@@ -101,7 +101,7 @@ static void processRPC( steam_rpc_pkt_s *req, size_t size )
 		case RPC_AUTHSESSION_TICKET: {
 			struct auth_session_ticket_recv_s recv;
 			prepared_rpc_packet( &req->common, &recv );
-			GSteamUser->GetAuthSessionTicket( recv.ticket, AUTH_TICKET_MAXSIZE, &recv.pcbTicket );
+			GSteamUser->GetAuthSessionTicket( recv.ticket, AUTH_TICKET_MAXSIZE, &recv.pcbTicket, nullptr );
 			write_packet( GPipeWrite, &recv, sizeof( struct auth_session_ticket_recv_s ) );
 			break;
 		}
@@ -120,8 +120,13 @@ static void processRPC( steam_rpc_pkt_s *req, size_t size )
 			uint8_t buffer[sizeof( struct buffer_rpc_s ) + 1024];
 			struct buffer_rpc_s *recv = (struct buffer_rpc_s *)buffer;
 			prepared_rpc_packet( &req->common, recv );
-			const int numberBytes = SteamApps()->GetLaunchCommandLine( (char *)recv->buf, 1024 );
-			assert( numberBytes > 0 );
+			int numberBytes = SteamApps()->GetLaunchCommandLine( (char *)recv->buf, 1024 );
+			if (!numberBytes)
+			{
+				numberBytes = sizeof( "DUMMY" );
+				memcpy( recv->buf, "DUMMY", sizeof( "DUMMY" ) );
+			}
+
 			write_packet( GPipeWrite, &recv, sizeof( buffer_rpc_s ) + numberBytes );
 			break;
 		}

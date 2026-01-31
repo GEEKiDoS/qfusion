@@ -27,9 +27,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define STR_HELPER( s )                 # s
 #define STR_TOSTR( x )                  STR_HELPER( x )
 
-#define APPLICATION           "Warfork"
-#define APPLICATION_UTF8      "Warfork"
-#define DEFAULT_BASEGAME      "basewf"
+#define APPLICATION           "Hachimi"
+#define APPLICATION_UTF8      "Hachimi"
+#define DEFAULT_BASEGAME      "data"
 
 #define APP_VERSION_MAJOR     2
 #define APP_VERSION_MINOR     16
@@ -77,7 +77,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #define APP_UI_BASEPATH       "ui/porkui"
 #define APP_STARTUP_COLOR     0x1c1416
-#define APP_STEAMID           671610
+#define APP_STEAMID           0
 #define APP_SCREENSHOTS_PREFIX     "wf_"
 #define APP_COPYRIGHT_OWNER        "Team Forbidden LLC"
 #define APP_DEFAULT_LANGUAGE  "en"

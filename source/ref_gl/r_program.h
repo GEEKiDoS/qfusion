@@ -107,6 +107,7 @@ enum
 #define GLSL_SHADER_COMMON_FRAGMENT_HIGHP		GLSL_BIT(26)
 
 #define GLSL_SHADER_COMMON_TC_MOD				GLSL_BIT(27)
+#define GLSL_SHADER_COMMON_MOTION_VECTORS		GLSL_BIT(28) // 运动向量支持
 
 // material prgoram type features
 #define GLSL_SHADER_MATERIAL_LIGHTSTYLE0		GLSL_BIT(32)
@@ -207,6 +208,7 @@ void RP_UpdateShaderUniforms( int elem,
 
 void RP_UpdateViewUniforms( int elem, 
 	const mat4_t modelviewMatrix, const mat4_t modelviewProjectionMatrix,
+	const mat4_t lastModelViewProjectionMatrix, // 上一帧MVP矩阵（用于运动向量）
 	const vec3_t viewOrigin, const mat3_t viewAxis, 
 	const float mirrorSide, 
 	int viewport[4],
@@ -236,7 +238,7 @@ void RP_UpdateFogUniforms( int elem, byte_vec4_t color, float clearDist, float o
 
 void RP_UpdateTexGenUniforms( int elem, const mat4_t reflectionMatrix, const mat4_t vectorMatrix );
 
-void RP_UpdateBonesUniforms( int elem, unsigned int numBones, dualquat_t *animDualQuat );
+void RP_UpdateBonesUniforms( int elem, unsigned int numBones, dualquat_t *animDualQuat, dualquat_t *lastAnimDualQuat );
 
 void RP_UpdateDrawFlatUniforms( int elem, const vec3_t wallColor, const vec3_t floorColor );
 

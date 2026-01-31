@@ -44,8 +44,8 @@ void RB_EndFrame( void );
 void RB_BeginRegistration( void );
 void RB_EndRegistration( void );
 
-void RB_LoadCameraMatrix( const mat4_t m );
-void RB_LoadObjectMatrix( const mat4_t m );
+void RB_LoadCameraMatrix( const mat4_t m, const mat4_t last );
+void RB_LoadObjectMatrix( const mat4_t m, const mat4_t last );
 void RB_LoadProjectionMatrix( const mat4_t m );
 
 void RB_DepthRange( float depthmin, float depthmax );
@@ -87,7 +87,7 @@ void RB_BindShader( const entity_t *e, const struct shader_s *shader, const stru
 void RB_SetLightstyle( const struct superLightStyle_s *lightStyle );
 void RB_SetDlightBits( unsigned int dlightBits );
 void RB_SetShadowBits( unsigned int shadowBits );
-void RB_SetBonesData( int numBones, dualquat_t *dualQuats, int maxWeights );
+void RB_SetBonesData( int numBones, dualquat_t *dualQuats, dualquat_t *prevDualQuats, int maxWeights );
 void RB_SetPortalSurface( const struct portalSurface_s *portalSurface );
 void RB_SetSkyboxShader( const shader_t *shader );
 void RB_SetSkyboxSide( int side );

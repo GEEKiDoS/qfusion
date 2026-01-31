@@ -181,6 +181,9 @@ typedef struct
 	mat4_t			cameraProjectionMatrix;			// cameraMatrix * projectionMatrix
 	mat4_t			modelviewProjectionMatrix;		// modelviewMatrix * projectionMatrix
 
+	mat4_t			lastObjectMatrix;
+	mat4_t			lastCameraMatrix;
+
 	float			skyMins[2][6];
 	float			skyMaxs[2][6];
 
@@ -432,6 +435,8 @@ extern cvar_t *r_usenotexture;
 extern cvar_t *r_maxglslbones;
 
 extern cvar_t *r_multithreading;
+
+extern cvar_t *r_debugMotionVector; // 调试运动向量显示
 
 extern cvar_t *gl_cull;
 

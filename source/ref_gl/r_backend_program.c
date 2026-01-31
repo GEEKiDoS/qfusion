@@ -768,6 +768,7 @@ static void RB_UpdateCommonUniforms( int program, const shaderpass_t *pass, mat4
 
 	RP_UpdateViewUniforms( program,
 		rb.modelviewMatrix, rb.modelviewProjectionMatrix,
+		rb.lastModelViewProjectionMatrix, // 上一帧MVP矩阵
 		rb.cameraOrigin, rb.cameraAxis, 
 		rb.renderFlags & RF_MIRRORVIEW ? -1 : 1,
 		rb.gl.viewport,
@@ -917,6 +918,11 @@ static void RB_RenderMeshGLSL_Material( const shaderpass_t *pass, r_glslfeat_t p
 	// add dynamic lights
 	if( rb.currentDlightBits ) {
 		programFeatures |= RB_DlightbitsToProgramFeatures( rb.currentDlightBits );
+	}
+
+	// 根据调试cvar添加运动向量特性
+	if( r_debugMotionVector->integer ) {
+		programFeatures |= GLSL_SHADER_COMMON_MOTION_VECTORS;
 	}
 
 	Matrix4_Identity( texMatrix );
@@ -1080,7 +1086,7 @@ static void RB_RenderMeshGLSL_Material( const shaderpass_t *pass, r_glslfeat_t p
 
 		// submit animation data
 		if( programFeatures & GLSL_SHADER_COMMON_BONE_TRANSFORMS ) {
-			RP_UpdateBonesUniforms( program, rb.bonesData.numBones, rb.bonesData.dualQuats );
+			RP_UpdateBonesUniforms( program, rb.bonesData.numBones, rb.bonesData.dualQuats, rb.bonesData.prevDualQuats );
 		}
 
 		// dynamic lights
@@ -1240,7 +1246,7 @@ static void RB_RenderMeshGLSL_ShadowmapArray( const shaderpass_t *pass, r_glslfe
 
 	// submit animation data
 	if( programFeatures & GLSL_SHADER_COMMON_BONE_TRANSFORMS ) {
-		RP_UpdateBonesUniforms( program, rb.bonesData.numBones, rb.bonesData.dualQuats );
+		RP_UpdateBonesUniforms( program, rb.bonesData.numBones, rb.bonesData.dualQuats, rb.bonesData.prevDualQuats );
 	}
 
 	RB_DrawElementsReal( &rb.drawShadowElements );
@@ -1272,7 +1278,7 @@ static void RB_RenderMeshGLSL_RGBShadow( const shaderpass_t *pass, r_glslfeat_t 
 
 		// submit animation data
 		if( programFeatures & GLSL_SHADER_COMMON_BONE_TRANSFORMS ) {
-			RP_UpdateBonesUniforms( program, rb.bonesData.numBones, rb.bonesData.dualQuats );
+			RP_UpdateBonesUniforms( program, rb.bonesData.numBones, rb.bonesData.dualQuats, rb.bonesData.prevDualQuats );
 		}
 
 		RB_DrawElementsReal( &rb.drawElements );
@@ -1404,7 +1410,7 @@ static void RB_RenderMeshGLSL_Outline( const shaderpass_t *pass, r_glslfeat_t pr
 
 	// submit animation data
 	if( programFeatures & GLSL_SHADER_COMMON_BONE_TRANSFORMS ) {
-		RP_UpdateBonesUniforms( program, rb.bonesData.numBones, rb.bonesData.dualQuats );
+		RP_UpdateBonesUniforms( program, rb.bonesData.numBones, rb.bonesData.dualQuats, rb.bonesData.prevDualQuats );
 	}
 
 	RB_DrawElementsReal( &rb.drawElements );
@@ -1556,6 +1562,11 @@ static void RB_RenderMeshGLSL_Q3AShader( const shaderpass_t *pass, r_glslfeat_t 
 		programFeatures |= GLSL_SHADER_Q3_ALPHA_MASK;
 	}
 
+	// 根据调试cvar添加运动向量特性
+	if( r_debugMotionVector && r_debugMotionVector->integer ) {
+		programFeatures |= GLSL_SHADER_COMMON_MOTION_VECTORS;
+	}
+
 	RB_BindImage( 0, image );
 
 	// convert rgbgen and alphagen to GLSL feature defines
@@ -1611,7 +1622,7 @@ static void RB_RenderMeshGLSL_Q3AShader( const shaderpass_t *pass, r_glslfeat_t 
 
 		// submit animation data
 		if( programFeatures & GLSL_SHADER_COMMON_BONE_TRANSFORMS ) {
-			RP_UpdateBonesUniforms( program, rb.bonesData.numBones, rb.bonesData.dualQuats );
+			RP_UpdateBonesUniforms( program, rb.bonesData.numBones, rb.bonesData.dualQuats, rb.bonesData.prevDualQuats );
 		}
 
 		// dynamic lights
@@ -1672,6 +1683,11 @@ static void RB_RenderMeshGLSL_Celshade( const shaderpass_t *pass, r_glslfeat_t p
 	// convert rgbgen and alphagen to GLSL feature defines
 	programFeatures |= RB_RGBAlphaGenToProgramFeatures( &pass->rgbgen, &pass->alphagen );
 
+	// 根据调试cvar添加运动向量特性
+	if( r_debugMotionVector && r_debugMotionVector->integer ) {
+		programFeatures |= GLSL_SHADER_COMMON_MOTION_VECTORS;
+	}
+
 	// set shaderpass state (blending, depthwrite, etc)
 	RB_SetShaderpassState( pass->flags );
 
@@ -1719,7 +1735,7 @@ static void RB_RenderMeshGLSL_Celshade( const shaderpass_t *pass, r_glslfeat_t p
 
 		// submit animation data
 		if( programFeatures & GLSL_SHADER_COMMON_BONE_TRANSFORMS ) {
-			RP_UpdateBonesUniforms( program, rb.bonesData.numBones, rb.bonesData.dualQuats );
+			RP_UpdateBonesUniforms( program, rb.bonesData.numBones, rb.bonesData.dualQuats, rb.bonesData.prevDualQuats );
 		}
 
 		RB_DrawElementsReal( &rb.drawElements );
@@ -1751,7 +1767,7 @@ static void RB_RenderMeshGLSL_Fog( const shaderpass_t *pass, r_glslfeat_t progra
 
 		// submit animation data
 		if( programFeatures & GLSL_SHADER_COMMON_BONE_TRANSFORMS ) {
-			RP_UpdateBonesUniforms( program, rb.bonesData.numBones, rb.bonesData.dualQuats );
+			RP_UpdateBonesUniforms( program, rb.bonesData.numBones, rb.bonesData.dualQuats, rb.bonesData.prevDualQuats );
 		}
 
 		RB_DrawElementsReal( &rb.drawElements );
@@ -1967,6 +1983,8 @@ void RB_BindShader( const entity_t *e, const shader_t *shader, const mfog_t *fog
 	rb.bonesData.numBones = 0;
 	rb.bonesData.maxWeights = 0;
 
+	memset( rb.bonesData.prevDualQuats, 0, sizeof(rb.bonesData.prevDualQuats) );
+
 	rb.currentPortalSurface = NULL;
 
 	rb.skyboxShader = NULL;
@@ -2042,7 +2060,7 @@ void RB_SetShadowBits( unsigned int shadowBits )
 /*
 * RB_SetAnimData
 */
-void RB_SetBonesData( int numBones, dualquat_t *dualQuats, int maxWeights )
+void RB_SetBonesData( int numBones, dualquat_t *dualQuats, dualquat_t *prevDualQuats, int maxWeights )
 {
 	assert( rb.currentShader != NULL );
 
@@ -2055,6 +2073,13 @@ void RB_SetBonesData( int numBones, dualquat_t *dualQuats, int maxWeights )
 
 	rb.bonesData.numBones = numBones;
 	memcpy( rb.bonesData.dualQuats, dualQuats, numBones * sizeof( *dualQuats ) );
+	
+	if( prevDualQuats ) {
+		memcpy( rb.bonesData.prevDualQuats, prevDualQuats, numBones * sizeof( *prevDualQuats ) );
+	} else {
+		memcpy( rb.bonesData.prevDualQuats, rb.bonesData.dualQuats, numBones * sizeof( *prevDualQuats ) );
+	}
+	
 	rb.bonesData.maxWeights = maxWeights;
 
 	rb.dirtyUniformState = true;

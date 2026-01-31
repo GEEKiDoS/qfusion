@@ -37,6 +37,7 @@ typedef struct
 {
 	unsigned int numBones;
 	dualquat_t dualQuats[MAX_GLSL_UNIFORM_BONES];
+	dualquat_t prevDualQuats[MAX_GLSL_UNIFORM_BONES]; // 上一帧的骨骼对偶四元数
 	unsigned int maxWeights;
 } rbBonesData_t;
 
@@ -112,6 +113,13 @@ typedef struct r_backend_s
 	mat4_t modelviewMatrix;
 	mat4_t projectionMatrix;
 	mat4_t modelviewProjectionMatrix;
+	
+	// 上一帧矩阵（用于运动向量）
+	mat4_t lastCameraMatrix; 
+	mat4_t lastObjectMatrix; 
+	mat4_t lastModelViewMatrix;
+	mat4_t lastModelViewProjectionMatrix;
+	
 	float zNear, zFar;
 
 	int renderFlags;
