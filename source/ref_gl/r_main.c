@@ -1822,3 +1822,15 @@ void R_FreeFile_( void *buffer, const char *filename, int fileline )
 {
 	ri.Mem_Free( buffer, filename, fileline );
 }
+
+void R_GetDeviceInfo(char* buffer, size_t buf_size)
+{
+	sprintf_s( buffer, buf_size, 
+			  "^5%s\nOpenGL %s\n%s\n\n%dx%d",
+			  glConfig.applicationName,
+			  glConfig.versionString,
+			  glConfig.rendererString,
+			  glConfig.width,
+			  glConfig.height
+	);
+}

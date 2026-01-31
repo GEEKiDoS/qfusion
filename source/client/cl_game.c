@@ -430,6 +430,7 @@ void CL_GameModule_Init( void )
 
 	import.GetConfigString = CL_GameModule_GetConfigString;
 	import.Milliseconds = Sys_Milliseconds;
+	import.Microseconds = Sys_Microseconds;
 	import.DownloadRequest = CL_DownloadRequest;
 
 	import.NET_GetUserCmd = CL_GameModule_NET_GetUserCmd;

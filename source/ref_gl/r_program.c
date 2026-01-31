@@ -2494,7 +2494,6 @@ static void RP_GetUniformLocations( glsl_program_t *program )
 	program->loc.ModelViewMatrix = qglGetUniformLocationARB( program->object, "u_ModelViewMatrix" );
 	program->loc.ModelViewProjectionMatrix = qglGetUniformLocationARB( program->object, "u_ModelViewProjectionMatrix" );
 	program->loc.LastModelViewProjectionMatrix = qglGetUniformLocationARB( program->object, "u_LastModelViewProjectionMatrix" );
-	Com_Printf( "%s: program->loc.LastModelViewProjectionMatrix = %d\n", program->name, program->loc.LastModelViewProjectionMatrix );
 
 	program->loc.ZRange = qglGetUniformLocationARB( program->object, "u_ZRange" );
 

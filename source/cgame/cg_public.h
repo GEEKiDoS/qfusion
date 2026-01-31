@@ -131,6 +131,7 @@ typedef struct
 
 	void ( *GetConfigString )( int i, char *str, int size );
 	unsigned int ( *Milliseconds )( void );
+	int64_t ( *Microseconds )( void );
 	bool ( *DownloadRequest )( const char *filename, bool requestpak );
 
 	unsigned int (* Hash_BlockChecksum )( const uint8_t * data, size_t len );

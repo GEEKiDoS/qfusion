@@ -97,6 +97,7 @@ typedef struct
 	int ( *SkinIndex )( const char *name );
 
 	unsigned int ( *Milliseconds )( void );
+	unsigned int ( *Microseconds )( void );
 
 	bool ( *inPVS )( const vec3_t p1, const vec3_t p2 );
 

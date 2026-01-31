@@ -172,6 +172,11 @@ static inline unsigned int trap_Milliseconds( void )
 	return CGAME_IMPORT.Milliseconds();
 }
 
+static inline unsigned int trap_Microseconds( void )
+{
+	return CGAME_IMPORT.Microseconds();
+}
+
 static inline bool trap_DownloadRequest( const char *filename, bool requestpak )
 {
 	return CGAME_IMPORT.DownloadRequest( filename, requestpak == true ? true : false ) == true;

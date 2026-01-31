@@ -89,6 +89,11 @@ static inline unsigned int trap_Milliseconds( void )
 	return GAME_IMPORT.Milliseconds();
 }
 
+static inline unsigned int trap_Microseconds( void )
+{
+	return GAME_IMPORT.Microseconds();
+}
+
 static inline bool trap_inPVS( const vec3_t p1, const vec3_t p2 )
 {
 	return GAME_IMPORT.inPVS( p1, p2 ) == true;

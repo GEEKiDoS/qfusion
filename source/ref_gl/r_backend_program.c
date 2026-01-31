@@ -768,7 +768,7 @@ static void RB_UpdateCommonUniforms( int program, const shaderpass_t *pass, mat4
 
 	RP_UpdateViewUniforms( program,
 		rb.modelviewMatrix, rb.modelviewProjectionMatrix,
-		rb.lastModelViewProjectionMatrix, // 上一帧MVP矩阵
+		rb.lastModelViewProjectionMatrix,
 		rb.cameraOrigin, rb.cameraAxis, 
 		rb.renderFlags & RF_MIRRORVIEW ? -1 : 1,
 		rb.gl.viewport,

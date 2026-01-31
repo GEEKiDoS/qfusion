@@ -199,53 +199,6 @@ static int CG_GetSpeedVertical( const void *parameter )
 	return cg.predictedPlayerState.pmove.velocity[2];
 }
 
-static int CG_GetFPS( const void *parameter )
-{
-#define FPSSAMPLESCOUNT 32
-#define FPSSAMPLESMASK ( FPSSAMPLESCOUNT-1 )
-	static int fps;
-	static double oldtime;
-	static int oldframecount;
-	static float frameTimes[FPSSAMPLESCOUNT];
-	static float avFrameTime;
-	int i;
-	double t;
-
-	if( cg_showFPS->integer == 1 )
-	{
-		// FIXME: this should be removed once the API no longer locked
-		fps = (int)RF_GetAverageFramerate();
-		if( fps < 1 )
-			fps = 1;
-		return fps;
-	}
-
-	frameTimes[cg.frameCount & FPSSAMPLESMASK] = cg.realFrameTime;
-
-	if( cg_showFPS->integer == 2 )
-	{
-		for( avFrameTime = 0.0f, i = 0; i < FPSSAMPLESCOUNT; i++ )
-		{
-			avFrameTime += frameTimes[( cg.frameCount-i ) & FPSSAMPLESMASK];
-		}
-		avFrameTime /= FPSSAMPLESCOUNT;
-		fps = (int)( 1.0f/avFrameTime + 0.5f );
-	}
-	else
-	{
-		t = cg.realTime * 0.001f;
-		if( ( t - oldtime ) >= 0.25 )
-		{
-			// updates 4 times a second
-			fps = ( cg.frameCount - oldframecount ) / ( t - oldtime ) + 0.5;
-			oldframecount = cg.frameCount;
-			oldtime = t;
-		}
-	}
-
-	return fps;
-}
-
 static int CG_GetPowerupTime( const void *parameter )
 {
 	int powerup = (intptr_t)parameter;
@@ -713,7 +666,6 @@ static const reference_numeric_t cg_numeric_references[] =
 	{ "ARMOR_ITEM", CG_GetArmorItem, NULL },
 	{ "SPEED", CG_GetSpeed, NULL },
 	{ "SPEED_VERTICAL", CG_GetSpeedVertical, NULL },
-	{ "FPS", CG_GetFPS, NULL },
 	{ "MATCH_STATE", CG_GetMatchState, NULL },
 	{ "MATCH_DURATION", CG_GetMatchDuration, NULL },
 	{ "OVERTIME", CG_GetOvertime, NULL },
@@ -753,7 +705,6 @@ static const reference_numeric_t cg_numeric_references[] =
 	{ "DIFF_ANGLE", CG_GetRaceVars, (void *)diff_an	},
 
 	// cvars
-	{ "SHOW_FPS", CG_GetCvar, "cg_showFPS" },
 	{ "SHOW_OBITUARIES", CG_GetCvar, "cg_showObituaries" },
 	{ "SHOW_PICKUP", CG_GetCvar, "cg_showPickup" },
 	{ "SHOW_POINTED_PLAYER", CG_GetCvar, "cg_showPointedPlayer" },

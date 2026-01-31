@@ -1683,6 +1683,67 @@ void CG_Draw2DView( void )
 		ALIGN_RIGHT_TOP, cgs.fontSystemSmall, colorWhite );
 }
 
+void CG_DrawFPS( void )
+{
+	static int64_t last_usec = 0;
+	static float fps_smoothed = 0;
+
+	int64_t usec = trap_Microseconds();
+
+	int64_t ft = usec - last_usec;
+	last_usec = usec;
+
+	float ft_msec = ft / 1000.f;
+	float fps = 1000.f / ft_msec;
+
+	fps_smoothed = fps_smoothed * 0.9f + fps * 0.1f;
+
+	int lineHeight = trap_SCR_FontHeight( cgs.fontSystemTiny );
+
+	int x = cgs.vidWidth - 16;
+	int y = 16;
+
+	char text[128];
+
+	if( cg_showFPS->integer >= 3 ) {
+		R_GetDeviceInfo( text, sizeof( text ) );
+		char *ptr = text, *end;
+
+		for(;;) {
+			end = strchr( ptr, '\n' );
+			if( end )
+				text[end - text] = '\0';
+
+			trap_SCR_DrawString( x, y + 1, ALIGN_RIGHT_TOP, ptr, cgs.fontSystemTiny, vec4_t{ 0.f, 0.f, 0.f, 0.5f } );
+			trap_SCR_DrawString( x, y, ALIGN_RIGHT_TOP, ptr, cgs.fontSystemTiny, vec4_t{ 0.6f, 0.6f, 0.6f, 1.0f } );
+			y += lineHeight;
+
+			if( end )
+				ptr = end + 1;
+			else
+				break;
+		}
+
+		y += lineHeight;
+	}
+
+	if( cg_showFPS->integer >= 1 ) {
+		sprintf_s( text, "%.2f FPS", fps );
+		trap_SCR_DrawString( x, y + 1, ALIGN_RIGHT_TOP, text, cgs.fontSystemTiny, vec4_t{ 0.f, 0.f, 0.f, 0.5f } );
+		trap_SCR_DrawString( x, y, ALIGN_RIGHT_TOP, text, cgs.fontSystemTiny, vec4_t{ 0.f, 1.f, 0.f, 1.0f } );
+
+		y += lineHeight;
+	}
+
+	if( cg_showFPS->integer >= 2 ) {
+		sprintf_s( text, "%.2f ms/f", ft_msec );
+		trap_SCR_DrawString( x, y + 1, ALIGN_RIGHT_TOP, text, cgs.fontSystemTiny, vec4_t{ 0.f, 0.f, 0.f, 0.5f } );
+		trap_SCR_DrawString( x, y, ALIGN_RIGHT_TOP, text, cgs.fontSystemTiny, vec4_t{ 0.8f, 0.8f, 0.8f, 1.0f } );
+
+		y += lineHeight;
+	}
+}
+
 /*
 * CG_Draw2D
 */
@@ -1693,6 +1754,8 @@ void CG_Draw2D( void )
 
 	CG_Draw2DView();
 	CG_DrawDemocam2D();
+
+	CG_DrawFPS();
 }
 
 /*
