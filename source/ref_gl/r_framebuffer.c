@@ -8,7 +8,7 @@ of the License, or (at your option) any later version.
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 See the GNU General Public License for more details.
 
@@ -22,17 +22,15 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "r_local.h"
 
-#define MAX_FRAMEBUFFER_OBJECTS	    1024
+#define MAX_FRAMEBUFFER_OBJECTS 1024
 
-typedef struct
-{
+typedef struct {
 	int registrationSequence; // -1 if builtin
 	unsigned int objectID;
 	unsigned int depthRenderBuffer;
 	unsigned int stencilRenderBuffer;
 	int width, height;
-	image_t *depthTexture;
-	image_t *colorTexture;
+	image_t *textures[FBO_TEXTURE_COUNT];
 } r_fbo_t;
 
 static bool r_frambuffer_objects_initialized;
@@ -42,8 +40,8 @@ static int r_num_framebuffer_objects;
 static r_fbo_t r_framebuffer_objects[MAX_FRAMEBUFFER_OBJECTS];
 
 /*
-* RFB_Init
-*/
+ * RFB_Init
+ */
 void RFB_Init( void )
 {
 	r_num_framebuffer_objects = 0;
@@ -57,34 +55,31 @@ void RFB_Init( void )
 }
 
 /*
-* RFB_DeleteObject
-* 
-* Delete framebuffer object along with attached render buffer
-*/
+ * RFB_DeleteObject
+ *
+ * Delete framebuffer object along with attached render buffer
+ */
 static void RFB_DeleteObject( r_fbo_t *fbo )
 {
-	if( fbo->depthRenderBuffer )
-	{
+	if( fbo->depthRenderBuffer ) {
 		qglDeleteRenderbuffersEXT( 1, &( fbo->depthRenderBuffer ) );
 		fbo->depthRenderBuffer = 0;
 	}
 
-	if( fbo->stencilRenderBuffer )
-	{
+	if( fbo->stencilRenderBuffer ) {
 		qglDeleteRenderbuffersEXT( 1, &( fbo->stencilRenderBuffer ) );
 		fbo->stencilRenderBuffer = 0;
 	}
 
-	if( fbo->objectID )
-	{
+	if( fbo->objectID ) {
 		qglDeleteFramebuffersEXT( 1, &( fbo->objectID ) );
 		fbo->objectID = 0;
 	}
 }
 
 /*
-* RFB_RegisterObject
-*/
+ * RFB_RegisterObject
+ */
 int RFB_RegisterObject( int width, int height, bool builtin, bool depthRB, bool stencilRB )
 {
 	int i;
@@ -102,8 +97,7 @@ int RFB_RegisterObject( int width, int height, bool builtin, bool depthRB, bool 
 		}
 	}
 
-	if( i == MAX_FRAMEBUFFER_OBJECTS )
-	{
+	if( i == MAX_FRAMEBUFFER_OBJECTS ) {
 		Com_Printf( S_COLOR_YELLOW "RFB_RegisterObject: framebuffer objects limit exceeded\n" );
 		return 0;
 	}
@@ -124,14 +118,11 @@ found:
 
 	qglBindFramebufferEXT( GL_FRAMEBUFFER_EXT, fbo->objectID );
 
-#ifndef GL_ES_VERSION_2_0
 	// until a color texture is attached, don't enable drawing to the buffer
 	qglDrawBuffer( GL_NONE );
 	qglReadBuffer( GL_NONE );
-#endif
 
-	if( depthRB )
-	{
+	if( depthRB ) {
 		int format;
 
 		qglGenRenderbuffersEXT( 1, &rbID );
@@ -152,7 +143,7 @@ found:
 		if( stencilRB )
 			qglFramebufferRenderbufferEXT( GL_FRAMEBUFFER_EXT, GL_STENCIL_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, rbID );
 
-		qglBindRenderbufferEXT( GL_RENDERBUFFER_EXT, 0 );	
+		qglBindRenderbufferEXT( GL_RENDERBUFFER_EXT, 0 );
 	}
 
 	if( r_bound_framebuffer_objectID )
@@ -160,12 +151,12 @@ found:
 	else
 		qglBindFramebufferEXT( GL_FRAMEBUFFER_EXT, 0 );
 
-	return i+1;
+	return i + 1;
 }
 
 /*
-* RFB_UnregisterObject
-*/
+ * RFB_UnregisterObject
+ */
 void RFB_UnregisterObject( int object )
 {
 	r_fbo_t *fbo;
@@ -180,8 +171,8 @@ void RFB_UnregisterObject( int object )
 }
 
 /*
-* RFB_TouchObject
-*/
+ * RFB_TouchObject
+ */
 void RFB_TouchObject( int object )
 {
 	r_fbo_t *fbo;
@@ -196,24 +187,24 @@ void RFB_TouchObject( int object )
 }
 
 /*
-* RFB_BoundObject
-*/
+ * RFB_BoundObject
+ */
 int RFB_BoundObject( void )
 {
 	return r_bound_framebuffer_objectID;
 }
 
 /*
-* RFB_BindObject
-*
-* DO NOT call this function directly, use R_BindFrameBufferObject instead.
-*/
+ * RFB_BindObject
+ *
+ * DO NOT call this function directly, use R_BindFrameBufferObject instead.
+ */
 void RFB_BindObject( int object )
 {
-	if( !object )
-	{
-		if( r_frambuffer_objects_initialized )
+	if( !object ) {
+		if( r_frambuffer_objects_initialized ) {
 			qglBindFramebufferEXT( GL_FRAMEBUFFER_EXT, 0 );
+		}
 		r_bound_framebuffer_objectID = 0;
 		r_bound_framebuffer_object = NULL;
 		return;
@@ -238,9 +229,31 @@ void RFB_BindObject( int object )
 }
 
 /*
-* RFB_AttachTextureToObject
-*/
-void RFB_AttachTextureToObject( int object, image_t *texture )
+ * RFB_SetupMRT
+ */
+void RFB_SetupMRT( int object )
+{
+	if( !object ) {
+		return;
+	}
+
+	int numColorAttachments = 0;
+	GLenum drawBuffers[FBO_TEXTURE_COUNT - 1]; // Exclude depth texture
+
+	for( FBO_TEXTURE_TYPE i = FBO_TEXTURE_COLOR; i < FBO_TEXTURE_DEPTH; i++ ) {
+		if( r_bound_framebuffer_object->textures[i] ) {
+			drawBuffers[numColorAttachments++] = GL_COLOR_ATTACHMENT0_EXT + i;
+		}
+	}
+
+	assert( numColorAttachments > 0 );
+	qglDrawBuffers( numColorAttachments, drawBuffers );
+}
+
+/*
+ * RFB_AttachTextureToObject
+ */
+void RFB_AttachTextureToObject( int object, image_t *texture, FBO_TEXTURE_TYPE type )
 {
 	r_fbo_t *fbo;
 	int attachment;
@@ -255,25 +268,25 @@ void RFB_AttachTextureToObject( int object, image_t *texture )
 		return;
 	}
 
+	assert( type < FBO_TEXTURE_COUNT );
+
 	fbo = r_framebuffer_objects + object - 1;
 	qglBindFramebufferEXT( GL_FRAMEBUFFER_EXT, fbo->objectID );
 
 	if( texture->flags & IT_DEPTH ) {
+		assert( type == FBO_TEXTURE_DEPTH );
 		attachment = GL_DEPTH_ATTACHMENT_EXT;
-		fbo->depthTexture = texture;
+		fbo->textures[FBO_TEXTURE_DEPTH] = texture;
 	} else {
-		attachment = GL_COLOR_ATTACHMENT0_EXT;
-		fbo->colorTexture = texture;
-#ifndef GL_ES_VERSION_2_0
-		qglDrawBuffer( GL_COLOR_ATTACHMENT0_EXT );
-		qglReadBuffer( GL_COLOR_ATTACHMENT0_EXT );
-#endif
+		attachment = GL_COLOR_ATTACHMENT0_EXT + type;
+		fbo->textures[type] = texture;
 	}
+
 	texture->fbo = object;
 
 	// attach texture
 	qglFramebufferTexture2DEXT( GL_FRAMEBUFFER_EXT, attachment, GL_TEXTURE_2D, texture->texnum, 0 );
-	if( ( texture->flags & ( IT_DEPTH|IT_STENCIL ) ) == ( IT_DEPTH|IT_STENCIL ) ) {
+	if( ( texture->flags & ( IT_DEPTH | IT_STENCIL ) ) == ( IT_DEPTH | IT_STENCIL ) ) {
 		qglFramebufferTexture2DEXT( GL_FRAMEBUFFER_EXT, GL_STENCIL_ATTACHMENT_EXT, GL_TEXTURE_2D, texture->texnum, 0 );
 	}
 
@@ -281,9 +294,9 @@ void RFB_AttachTextureToObject( int object, image_t *texture )
 }
 
 /*
-* RFB_GetObjectTextureAttachment
-*/
-image_t	*RFB_GetObjectTextureAttachment( int object, bool depth )
+ * RFB_GetObjectTextureAttachment
+ */
+image_t *RFB_GetObjectTextureAttachment( int object, FBO_TEXTURE_TYPE type )
 {
 	r_fbo_t *fbo;
 
@@ -293,21 +306,20 @@ image_t	*RFB_GetObjectTextureAttachment( int object, bool depth )
 	}
 
 	fbo = r_framebuffer_objects + object - 1;
-	return depth ? fbo->depthTexture : fbo->colorTexture;
+	return fbo->textures[type];
 }
 
 /*
-* RFB_BlitObject
-*
-* The target FBO must be equal or greater in both dimentions than
-* the currently bound FBO!
-*/
+ * RFB_BlitObject
+ *
+ * The target FBO must be equal or greater in both dimentions than
+ * the currently bound FBO!
+ */
 void RFB_BlitObject( int dest, int bitMask, int mode )
 {
 	int bits;
 	int dx, dy, dw, dh;
-	r_fbo_t *fbo = r_bound_framebuffer_object, 
-		*destfbo = r_framebuffer_objects + dest - 1;
+	r_fbo_t *fbo = r_bound_framebuffer_object, *destfbo = r_framebuffer_objects + dest - 1;
 
 	if( !r_bound_framebuffer_object ) {
 		return;
@@ -330,8 +342,8 @@ void RFB_BlitObject( int dest, int bitMask, int mode )
 
 	switch( mode ) {
 		case FBO_COPY_CENTREPOS:
-			dx = (destfbo->width - fbo->width) / 2;
-			dy = (destfbo->height - fbo->height) / 2;
+			dx = ( destfbo->width - fbo->width ) / 2;
+			dy = ( destfbo->height - fbo->height ) / 2;
 			dw = fbo->width;
 			dh = fbo->height;
 			break;
@@ -361,10 +373,10 @@ void RFB_BlitObject( int dest, int bitMask, int mode )
 }
 
 /*
-* RFB_CheckObjectStatus
-* 
-* Boolean, returns false in case of error
-*/
+ * RFB_CheckObjectStatus
+ *
+ * Boolean, returns false in case of error
+ */
 bool RFB_CheckObjectStatus( void )
 {
 	GLenum status;
@@ -373,8 +385,7 @@ bool RFB_CheckObjectStatus( void )
 		return false;
 
 	status = qglCheckFramebufferStatusEXT( GL_FRAMEBUFFER_EXT );
-	switch( status )
-	{
+	switch( status ) {
 		case GL_FRAMEBUFFER_COMPLETE_EXT:
 			return true;
 		case GL_FRAMEBUFFER_UNSUPPORTED_EXT:
@@ -383,13 +394,13 @@ bool RFB_CheckObjectStatus( void )
 			// programming error; will fail on all hardware
 			assert( 0 );
 	}
-	
+
 	return false;
 }
 
 /*
-* RFB_GetObjectSize
-*/
+ * RFB_GetObjectSize
+ */
 void RFB_GetObjectSize( int object, int *width, int *height )
 {
 	r_fbo_t *fbo;
@@ -411,8 +422,8 @@ void RFB_GetObjectSize( int object, int *width, int *height )
 }
 
 /*
-* RFB_FreeUnusedObjects
-*/
+ * RFB_FreeUnusedObjects
+ */
 void RFB_FreeUnusedObjects( void )
 {
 	int i;
@@ -432,10 +443,10 @@ void RFB_FreeUnusedObjects( void )
 }
 
 /*
-* RFB_Shutdown
-* 
-* Delete all registered framebuffer and render buffer objects, clear memory
-*/
+ * RFB_Shutdown
+ *
+ * Delete all registered framebuffer and render buffer objects, clear memory
+ */
 void RFB_Shutdown( void )
 {
 	int i;

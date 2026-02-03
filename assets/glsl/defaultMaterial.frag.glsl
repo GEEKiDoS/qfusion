@@ -150,13 +150,8 @@ void main()
 	
 #ifdef APPLY_MOTION_VECTORS
 	vec2 motionVector = (v_PositionClip.xy / v_PositionClip.w) - (v_LastPositionClip.xy / v_LastPositionClip.w);
-
-	if (motionVector.x < -0.01 || motionVector.x > 0.01) {
-		qf_FragColor.r = 1.0;
-	}
-
-	if (motionVector.y < -0.01 || motionVector.y > 0.01) {
-		qf_FragColor.g = 1.0;
-	}
+	motionVector *= 10;
+	qf_FragMotionVector.rg = motionVector * 0.5 + 0.5;
+	qf_FragMotionVector.b = length(motionVector);
 #endif
 }

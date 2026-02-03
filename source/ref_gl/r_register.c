@@ -89,6 +89,10 @@ cvar_t *r_outlines_cutoff;
 cvar_t *r_soft_particles;
 cvar_t *r_soft_particles_scale;
 
+cvar_t *r_postprocess;
+cvar_t *r_motionblur;
+cvar_t *r_ssao;
+cvar_t *r_bloom;
 cvar_t *r_fxaa;
 
 cvar_t *r_lodbias;
@@ -490,20 +494,6 @@ static bool R_RegisterGLExtensions( void )
 			glConfig.maxGLSLBones = 0;
 		}
 
-		if( glConfig.ext.texture_non_power_of_two ) {
-			// blacklist this extension on Radeon X1600-X1950 hardware (they support it only with certain filtering/repeat modes)
-			int val = 0;
-
-			// LadyHavoc: this is blocked on Mac OS X because the drivers claim support but often can't accelerate it or crash when used.
-#ifndef __APPLE__
-			if( glConfig.ext.vertex_shader )
-				qglGetIntegerv( GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS_ARB, &val );
-#endif
-
-			if( val <= 0 )
-				glConfig.ext.texture_non_power_of_two = false;
-		}
-
 		if( glConfig.ext.depth24 ) {
 			glConfig.depthEpsilon = 1.0 / ( 1 << 22 );
 		} else {
@@ -609,16 +599,7 @@ static void R_FillStartupBackgroundColor( float r, float g, float b )
 {
 	qglClearColor( r, g, b, 1.0 );
 	GLimp_BeginFrame();
-#ifndef GL_ES_VERSION_2_0
-	if( glConfig.stereoEnabled )
-	{
-		qglDrawBuffer( GL_BACK_LEFT );
-		qglClear( GL_COLOR_BUFFER_BIT );
-		qglDrawBuffer( GL_BACK_RIGHT );
-		qglClear( GL_COLOR_BUFFER_BIT );
-		qglDrawBuffer( GL_BACK );
-	}
-#endif
+
 	qglClear( GL_COLOR_BUFFER_BIT );
 	qglFinish();
 	GLimp_EndFrame();
@@ -699,6 +680,10 @@ static void R_Register( const char *screenshotsPrefix )
 	r_soft_particles = ri.Cvar_Get( "r_soft_particles", "1", CVAR_ARCHIVE );
 	r_soft_particles_scale = ri.Cvar_Get( "r_soft_particles_scale", "0.02", CVAR_ARCHIVE );
 
+	r_postprocess = ri.Cvar_Get( "r_postprocess", "1", CVAR_ARCHIVE );
+	r_bloom = ri.Cvar_Get( "r_bloom", "1", CVAR_ARCHIVE );
+	r_motionblur = ri.Cvar_Get( "r_motionblur", "1", CVAR_ARCHIVE );
+	r_ssao = ri.Cvar_Get( "r_ssao", "1", CVAR_ARCHIVE );
 	r_fxaa = ri.Cvar_Get( "r_fxaa", "1", CVAR_ARCHIVE );
 
 	r_lodbias = ri.Cvar_Get( "r_lodbias", "0", CVAR_ARCHIVE );
@@ -727,7 +712,6 @@ static void R_Register( const char *screenshotsPrefix )
 	r_wallcolor = ri.Cvar_Get( "r_wallcolor", "255 255 255", CVAR_ARCHIVE );
 	r_floorcolor = ri.Cvar_Get( "r_floorcolor", "255 153 0", CVAR_ARCHIVE );
 
-	// 调试运动向量显示 (0=关闭, 1=显示运动向量, 2=显示幅度)
 	r_debugMotionVector = ri.Cvar_Get( "r_debugMotionVector", "0", CVAR_CHEAT );
 
 	// make sure we rebuild our 3D texture after vid_restart

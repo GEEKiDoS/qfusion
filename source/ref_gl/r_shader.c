@@ -3008,6 +3008,7 @@ create_default:
 			pass->rgbgen.type = RGB_GEN_IDENTITY;
 			pass->alphagen.type = ALPHA_GEN_IDENTITY;
 			pass->tcgen = TC_GEN_BASE;
+			pass->program_type = GLSL_PROGRAM_TYPE_SKYBOX;
 			pass->flags = SHADERPASS_SKYBOXSIDE;
 			// the actual image will be picked at rendering time based on skyside number
 			pass->images[0] = rsh.whiteTexture;

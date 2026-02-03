@@ -477,9 +477,6 @@ static int R_ScaledImageSize( int width, int height, int *scaledWidth, int *scal
 		maxSize = glConfig.maxTextureSize;
 
 	makePOT = !glConfig.ext.texture_non_power_of_two && !forceNPOT;
-#ifdef GL_ES_VERSION_2_0
-	makePOT = makePOT && ( ( flags & ( IT_CLAMP|IT_NOMIPMAP ) ) != ( IT_CLAMP|IT_NOMIPMAP ) );
-#endif
 	if( makePOT )
 	{
 		int potWidth, potHeight;
@@ -781,7 +778,6 @@ static void R_MipMap16( unsigned short *in, int width, int height, int rMask, in
 /*
 * R_TextureInternalFormat
 */
-#ifndef GL_ES_VERSION_2_0
 static int R_TextureInternalFormat( int samples, int flags, int pixelType )
 {
 	int bits = r_texturebits->integer;
@@ -819,7 +815,6 @@ static int R_TextureInternalFormat( int samples, int flags, int pixelType )
 		return GL_RGBA4;
 	return GL_RGBA;
 }
-#endif
 
 /*
 * R_TextureFormat
@@ -850,8 +845,22 @@ static void R_TextureFormat( int flags, int samples, int *comp, int *format, int
 	}
 	else if( flags & IT_FRAMEBUFFER )
 	{
-		*comp = *format = samples == 4 ? GL_RGBA : GL_RGB;
-		*type = qgl_VERSION_3_0 ? GL_FLOAT : GL_UNSIGNED_BYTE;
+		if( flags & IT_DEPTH ) {
+			// Depth texture format
+			*format = GL_DEPTH_COMPONENT;
+			*comp = GL_DEPTH_COMPONENT;
+			*type = GL_FLOAT;
+		} else {
+			// Color framebuffer texture format
+			*format = samples == 4 ? GL_RGBA : GL_RGB;
+			if( qgl_VERSION_3_0 ) {
+				*comp = samples == 4 ? GL_RGBA16F : GL_RGB16F;
+				*type = GL_FLOAT;
+			} else {
+				*comp = samples == 4 ? GL_RGBA8 : GL_RGBA8;
+				*type = GL_UNSIGNED_BYTE;
+			}
+		}
 	}
 	else
 	{
@@ -867,10 +876,9 @@ static void R_TextureFormat( int flags, int samples, int *comp, int *format, int
 		else
 			*format = GL_LUMINANCE;
 		*comp = *format;
-#ifndef GL_ES_VERSION_2_0
+
 		if( !( flags & IT_3D ) )
 			*comp = R_TextureInternalFormat( samples, flags, GL_UNSIGNED_BYTE );
-#endif
 	}
 }
 
@@ -934,10 +942,8 @@ static void R_SetupTexParameters( int flags, int upload_width, int upload_height
 	{
 		if( glConfig.ext.texture_edge_clamp )
 			wrap = GL_CLAMP_TO_EDGE;
-#ifndef GL_ES_VERSION_2_0
 		else
 			wrap = GL_CLAMP;
-#endif
 	}
 	qglTexParameteri( target, GL_TEXTURE_WRAP_S, wrap );
 	qglTexParameteri( target, GL_TEXTURE_WRAP_T, wrap );
@@ -1191,11 +1197,7 @@ static void R_UploadMipmapped( int ctx, uint8_t **data,
 
 	int target, comp;
 	R_TextureTarget( flags, &target );
-#ifdef GL_ES_VERSION_2_0
-	comp = format;
-#else
 	comp = R_TextureInternalFormat( pixelSize, flags, type );
-#endif
 	R_SetupTexParameters( flags, scaledWidth, scaledHeight, minmipsize );
 
 	const uint_fast16_t numFaces = ( flags & IT_CUBEMAP ) ? 6 : 1;
@@ -2220,9 +2222,6 @@ static void R_GetViewportTextureSize( const int viewportWidth, const int viewpor
 	width_ = height_ = limit;
 
 	npot = glConfig.ext.texture_non_power_of_two;
-#ifdef GL_ES_VERSION_2_0
-	npot = npot || ( ( flags & ( IT_CLAMP|IT_NOMIPMAP ) ) == ( IT_CLAMP|IT_NOMIPMAP ) );
-#endif
 	if( npot )
 	{
 		width_ = min( viewportWidth, limit );
@@ -2257,7 +2256,7 @@ static void R_GetViewportTextureSize( const int viewportWidth, const int viewpor
 * R_InitViewportTexture
 */
 void R_InitViewportTexture( image_t **texture, const char *name, int id, 
-	int viewportWidth, int viewportHeight, int size, int flags, int tags, int samples )
+	int viewportWidth, int viewportHeight, int size, int flags, int tags, int samples, int type, int fbo )
 {
 	int width, height;
 	image_t *t;
@@ -2292,9 +2291,7 @@ void R_InitViewportTexture( image_t **texture, const char *name, int id,
 			t->fbo = 0;
 		}
 		if( t->flags & IT_FRAMEBUFFER ) {
-			t->fbo = RFB_RegisterObject( t->upload_width, t->upload_height, ( tags & IMAGE_TAG_BUILTIN ) != 0,
-				( flags & IT_DEPTHRB ) != 0, ( flags & IT_STENCIL ) != 0 );
-			RFB_AttachTextureToObject( t->fbo, t );
+			RFB_AttachTextureToObject( fbo, t, type );
 		}
 	}
 }
@@ -2358,10 +2355,11 @@ image_t *R_GetPortalTexture( int viewportWidth, int viewportHeight,
 		return NULL;
 	}
 
+	int fbo = RFB_RegisterObject( viewportWidth, viewportHeight, false, ( flags & IT_DEPTHRB ) != 0, ( flags & IT_STENCIL ) != 0 );
 	R_InitViewportTexture( &rsh.portalTextures[id], "r_portaltexture", id, 
 		viewportWidth, viewportHeight, r_portalmaps_maxtexsize->integer, 
 		IT_SPECIAL|IT_FRAMEBUFFER|IT_DEPTHRB|flags, IMAGE_TAG_GENERIC,
-		glConfig.forceRGBAFramebuffers ? 4 : 3 );
+		4, FBO_TEXTURE_COLOR, fbo );
 
 	if( rsh.portalTextures[id] ) {
 		rsh.portalTextures[id]->framenum = frameNum;
@@ -2390,9 +2388,10 @@ image_t *R_GetShadowmapTexture( int id, int viewportWidth, int viewportHeight, i
 		samples = 3;
 	}
 
+	int fbo = RFB_RegisterObject( viewportWidth, viewportHeight, true, ( flags & IT_DEPTHRB ) != 0, ( flags & IT_STENCIL ) != 0 );
 	R_InitViewportTexture( &rsh.shadowmapTextures[id], "r_shadowmap", id, 
 		viewportWidth, viewportHeight, r_shadows_maxtexsize->integer, 
-		IT_SPECIAL|IT_FRAMEBUFFER|IT_DEPTHCOMPARE|flags, IMAGE_TAG_GENERIC, samples );
+		IT_SPECIAL|IT_FRAMEBUFFER|IT_DEPTHCOMPARE|flags, IMAGE_TAG_GENERIC, samples, FBO_TEXTURE_COLOR, fbo );
 
 	return rsh.shadowmapTextures[id];
 }
@@ -2411,12 +2410,12 @@ static void R_InitStretchRawImages( void )
 /*
 * R_InitScreenImagePair
 */
-static void R_InitScreenImagePair( const char *name, image_t **color, image_t **depth, bool stencil )
+static void R_InitScreenImagePair( const char *name, image_t ***images, bool stencil )
 {
 	char tn[128];
 	int flags, colorFlags, depthFlags;
 
-	assert( !depth || glConfig.ext.depth_texture );
+	assert( !images[FBO_TEXTURE_DEPTH] || glConfig.ext.depth_texture );
 
 	if( !glConfig.stencilBits )
 		stencil = false;
@@ -2425,26 +2424,31 @@ static void R_InitScreenImagePair( const char *name, image_t **color, image_t **
 
 	colorFlags = flags | IT_FRAMEBUFFER;
 	depthFlags = flags | ( IT_DEPTH|IT_NOFILTERING );
-	if( !depth ) {
+	if( !images[FBO_TEXTURE_DEPTH] ) {
 		colorFlags |= IT_DEPTHRB;
 	}
+
 	if( stencil ) {
-		if( depth ) {
+		if( images[FBO_TEXTURE_DEPTH] ) {
 			depthFlags |= IT_STENCIL;
 		} else {
 			colorFlags |= IT_STENCIL;
 		}
 	}
 
-	if( color ) {
-		R_InitViewportTexture( color, name, 
-			0, glConfig.width, glConfig.height, 0, colorFlags, IMAGE_TAG_BUILTIN,
-			glConfig.forceRGBAFramebuffers ? 4 : 3 );
-	}
-	if( depth && *color ) {
-		R_InitViewportTexture( depth, va_r( tn, sizeof( tn ), "%s_depth", name ), 
-			0, glConfig.width, glConfig.height, 0, depthFlags, IMAGE_TAG_BUILTIN, 1 );
-		RFB_AttachTextureToObject( (*color)->fbo, *depth );
+	int fbo = RFB_RegisterObject( glConfig.width, glConfig.height, true, true, ( depthFlags & IT_STENCIL ) != 0 );
+
+	for( FBO_TEXTURE_TYPE i = FBO_TEXTURE_COLOR; i < FBO_TEXTURE_COUNT; i++ ) {
+		if( !images[i] ) {
+			continue;
+		}
+
+		int flags = (i == FBO_TEXTURE_DEPTH) ? depthFlags : colorFlags;
+		R_InitViewportTexture( images[i], va_r( tn, sizeof( tn ), "%s_%d", name, i ), i, glConfig.width, glConfig.height, 0, flags, IMAGE_TAG_BUILTIN, 4, i, fbo );
+
+		if( i == FBO_TEXTURE_DEPTH && images[FBO_TEXTURE_COLOR] ) {
+			RFB_AttachTextureToObject( (*images[FBO_TEXTURE_COLOR])->fbo, *images[i], FBO_TEXTURE_DEPTH );
+		}
 	}
 }
 
@@ -2455,16 +2459,24 @@ static void R_InitScreenImagePair( const char *name, image_t **color, image_t **
 */
 void R_InitBuiltinScreenImages( void )
 {
-	if( glConfig.ext.depth_texture && glConfig.ext.fragment_precision_high && glConfig.ext.framebuffer_blit )
-	{
-		R_InitScreenImagePair( "r_screentex", &rsh.screenTexture, &rsh.screenDepthTexture, true );
-
-		// Stencil is required in the copy for depth/stencil formats to match when blitting.
-		R_InitScreenImagePair( "r_screentexcopy", &rsh.screenTextureCopy, &rsh.screenDepthTextureCopy, true );
+	if( !glConfig.ext.depth_texture || !glConfig.ext.fragment_precision_high || !glConfig.ext.framebuffer_blit ) {
+		ri.Com_Error( ERR_FATAL, "Unsupported GPU." );
 	}
 
-	R_InitScreenImagePair( "rsh.screenPPCopy0", &rsh.screenPPCopies[0], NULL, true );
-	R_InitScreenImagePair( "rsh.screenPPCopy1", &rsh.screenPPCopies[1], NULL, false );
+	image_t **images[FBO_TEXTURE_COUNT];
+	memset( images, 0, sizeof( images ) );
+	images[FBO_TEXTURE_COLOR] = &rsh.screenTextures[FBO_TEXTURE_COLOR];
+	images[FBO_TEXTURE_NORMAL] = &rsh.screenTextures[FBO_TEXTURE_NORMAL];
+	images[FBO_TEXTURE_MOTION_VECTOR] = &rsh.screenTextures[FBO_TEXTURE_MOTION_VECTOR];
+	images[FBO_TEXTURE_DEPTH] = &rsh.screenTextures[FBO_TEXTURE_DEPTH];
+
+	R_InitScreenImagePair( "r_screentex", images, true );
+
+	// Stencil is required in the copy for depth/stencil formats to match when blitting.
+	memset( images, 0, sizeof( images ) );
+	images[FBO_TEXTURE_COLOR] = &rsh.screenTextureCopy;
+	images[FBO_TEXTURE_DEPTH] = &rsh.screenDepthTextureCopy;
+	R_InitScreenImagePair( "r_screentexcopy", images, true );
 }
 
 /*
@@ -2472,12 +2484,8 @@ void R_InitBuiltinScreenImages( void )
 */
 void R_ReleaseBuiltinScreenImages( void )
 {
-	if( rsh.screenTexture ) {
-		R_FreeImage( rsh.screenTexture );
-	}
-	if( rsh.screenDepthTexture ) {
-		R_FreeImage( rsh.screenDepthTexture );
-	}
+	for (FBO_TEXTURE_TYPE i = 0; i < FBO_TEXTURE_COUNT; i++)
+		R_FreeImage( rsh.screenTextures[i] );
 
 	if( rsh.screenTextureCopy ) {
 		R_FreeImage( rsh.screenTextureCopy );
@@ -2486,17 +2494,8 @@ void R_ReleaseBuiltinScreenImages( void )
 		R_FreeImage( rsh.screenDepthTextureCopy );
 	}
 
-	if( rsh.screenPPCopies[0] ) {
-		R_FreeImage( rsh.screenPPCopies[0] );
-	}
-	if( rsh.screenPPCopies[1] ) {
-		R_FreeImage( rsh.screenPPCopies[1] );
-	}
-
-	rsh.screenTexture = rsh.screenDepthTexture = NULL;
+	memset( rsh.screenTextures, 0, sizeof( rsh.screenTextures ) );
 	rsh.screenTextureCopy = rsh.screenDepthTextureCopy = NULL;
-	rsh.screenPPCopies[0] = NULL;
-	rsh.screenPPCopies[1] = NULL;
 }
 
 /*

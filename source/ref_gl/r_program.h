@@ -37,6 +37,7 @@ typedef uint64_t r_glslfeat_t;
 #define DEFAULT_GLSL_FXAA_PROGRAM				"defaultFXAA"
 #define DEFAULT_GLSL_YUV_PROGRAM				"defaultYUV"
 #define DEFAULT_GLSL_COLORCORRECTION_PROGRAM	"defaultColorCorrection"
+#define DEFAULT_GLSL_SKYBOX_PROGRAM				"defaultSkybox"
 
 // program types
 enum
@@ -54,6 +55,7 @@ enum
 	GLSL_PROGRAM_TYPE_FXAA,
 	GLSL_PROGRAM_TYPE_YUV,
 	GLSL_PROGRAM_TYPE_COLORCORRECTION,
+	GLSL_PROGRAM_TYPE_SKYBOX,
 
 	GLSL_PROGRAM_TYPE_MAXTYPE
 };

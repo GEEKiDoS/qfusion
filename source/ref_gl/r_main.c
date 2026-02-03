@@ -1413,9 +1413,6 @@ void R_DataSync( void )
 */
 int R_SetSwapInterval( int swapInterval, int oldSwapInterval )
 {
-	if( glConfig.stereoEnabled )
-		return oldSwapInterval;
-
 	clamp_low( swapInterval, r_swapinterval_min->integer );
 	if( swapInterval != oldSwapInterval ) {
 		GLimp_SetSwapInterval( swapInterval );
@@ -1655,36 +1652,18 @@ void R_BeginFrame( float cameraSeparation, bool forceClear, bool forceVsync )
 
 	RB_BeginFrame();
 
-#ifndef GL_ES_VERSION_2_0
-	if( cameraSeparation && ( !glConfig.stereoEnabled || !R_IsRenderingToScreen() ) )
-		cameraSeparation = 0;
-
+	cameraSeparation = 0;
 	if( rf.cameraSeparation != cameraSeparation )
 	{
 		rf.cameraSeparation = cameraSeparation;
-		if( cameraSeparation < 0 )
-			qglDrawBuffer( GL_BACK_LEFT );
-		else if( cameraSeparation > 0 )
-			qglDrawBuffer( GL_BACK_RIGHT );
-		else
-			qglDrawBuffer( GL_BACK );
+		qglDrawBuffer( GL_BACK );
 	}
-#endif
 
 	// draw buffer stuff
 	if( rf.newDrawBuffer )
 	{
 		rf.newDrawBuffer = false;
-
-#ifndef GL_ES_VERSION_2_0
-		if( cameraSeparation == 0 || !glConfig.stereoEnabled )
-		{
-			if( Q_stricmp( rf.drawBuffer, "GL_FRONT" ) == 0 )
-				qglDrawBuffer( GL_FRONT );
-			else
-				qglDrawBuffer( GL_BACK );
-		}
-#endif
+		qglDrawBuffer( GL_BACK );
 	}
 
 	if( forceClear )
@@ -1730,7 +1709,12 @@ void R_EndFrame( void )
 
 	GLimp_EndFrame();
 
-	assert( qglGetError() == GL_NO_ERROR );
+	int err = qglGetError();
+	if( err != GL_NO_ERROR ) {
+		ri.Com_Printf( "OpenGL Error: %x\n", err );
+	}
+
+	assert( err == GL_NO_ERROR );
 }
 
 

@@ -166,9 +166,7 @@ static void RB_SetGLDefaults( void )
 	qglPolygonOffset( -1.0f, 0.0f ); // units will be handled by RB_DepthOffset
 	qglColorMask( GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE );
 	qglEnable( GL_DEPTH_TEST );
-#ifndef GL_ES_VERSION_2_0
 	qglPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
-#endif
 	qglFrontFace( GL_CCW );
 	qglEnable( GL_SCISSOR_TEST );
 }
@@ -183,9 +181,7 @@ static void RB_SelectTextureUnit( int tmu )
 
 	rb.gl.currentTMU = tmu;
 	qglActiveTextureARB( tmu + GL_TEXTURE0_ARB );
-#ifndef GL_ES_VERSION_2_0
 	qglClientActiveTextureARB( tmu + GL_TEXTURE0_ARB );
-#endif
 }
 
 /*
@@ -654,6 +650,8 @@ void RB_BindFrameBufferObject( int object )
 
 	rb.gl.fbWidth = width;
 	rb.gl.fbHeight = height;
+
+	RFB_SetupMRT( object );
 }
 
 /*
@@ -1308,8 +1306,6 @@ bool RB_EnableTriangleOutlines( bool enable )
 	if( rb.triangleOutlines != enable ) {
 		rb.triangleOutlines = enable;
 
-		// OpenGL ES systems don't support glPolygonMode
-#ifndef GL_ES_VERSION_2_0
 		if( enable ) {
 			RB_SetShaderStateMask( 0, GLSTATE_NO_DEPTH_TEST );
 			qglPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
@@ -1318,7 +1314,6 @@ bool RB_EnableTriangleOutlines( bool enable )
 			RB_SetShaderStateMask( ~0, 0 );
 			qglPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
 		}
-#endif
 	}
 
 	return oldVal;

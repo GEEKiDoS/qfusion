@@ -17,4 +17,8 @@ void main(void)
 	blueOffset.y = min(blueOffset.y + 0.0625, 0.9375);
 	vec3 color2 = qf_texture(u_ColorLUT, coords.rg + blueOffset).rgb;
 	qf_FragColor = vec4(mix(color1, color2, blueMix), 1.0);
+
+    if (qf_FragColor.r > 1) {
+        qf_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
+    }
 }

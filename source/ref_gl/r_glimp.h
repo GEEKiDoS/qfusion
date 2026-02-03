@@ -197,7 +197,6 @@ typedef struct
 	int				width, height;
 	bool			fullScreen;
 
-	bool			stereoEnabled;
 	int				stencilBits;
 
 	bool			hwGamma;

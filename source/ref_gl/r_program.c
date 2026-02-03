@@ -26,11 +26,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define MAX_GLSL_PROGRAMS			1024
 #define GLSL_PROGRAMS_HASH_SIZE		256
 
-#ifdef GL_ES_VERSION_2_0
-#define GLSL_DEFAULT_CACHE_FILE_NAME	"glsl/glsles.cache.default"
-#else
 #define GLSL_DEFAULT_CACHE_FILE_NAME	"glsl/glsl.cache.default"
-#endif
 
 #define GLSL_CACHE_FILE_NAME			"cache/glsl.cache"
 #define GLSL_BINARY_CACHE_FILE_NAME		"cache/glsl.cache.bin"
@@ -159,21 +155,15 @@ static int RP_RegisterProgramBinary( int type, const char *name, const char *def
 	const deformv_t *deforms, int numDeforms, r_glslfeat_t features, 
 	int binaryFormat, unsigned binaryLength, void *binary );
 
-/*
-* RP_Init
-*/
-void RP_Init( void )
+static void RP_ReloadShaders_f()
 {
-	int program;
-
-	if( r_glslprograms_initialized ) {
-		return;
-	}
-
-	memset( r_glslprograms, 0, sizeof( r_glslprograms ) );
+	r_numglslprograms = 0;
+	memset( r_glslprograms, 0, sizeof( r_glslprograms_hash ) );
 	memset( r_glslprograms_hash, 0, sizeof( r_glslprograms_hash ) );
 
-	Trie_Create( TRIE_CASE_INSENSITIVE, &glsl_cache_trie );
+	if( glsl_cache_trie ) {
+		Trie_Create( TRIE_CASE_INSENSITIVE, &glsl_cache_trie );
+	}
 
 	// register base programs
 	RP_RegisterProgram( GLSL_PROGRAM_TYPE_MATERIAL, DEFAULT_GLSL_MATERIAL_PROGRAM, NULL, NULL, 0, 0 );
@@ -187,16 +177,34 @@ void RP_Init( void )
 	RP_RegisterProgram( GLSL_PROGRAM_TYPE_FXAA, DEFAULT_GLSL_FXAA_PROGRAM, NULL, NULL, 0, 0 );
 	RP_RegisterProgram( GLSL_PROGRAM_TYPE_YUV, DEFAULT_GLSL_YUV_PROGRAM, NULL, NULL, 0, 0 );
 	RP_RegisterProgram( GLSL_PROGRAM_TYPE_COLORCORRECTION, DEFAULT_GLSL_COLORCORRECTION_PROGRAM, NULL, NULL, 0, 0 );
+	RP_RegisterProgram( GLSL_PROGRAM_TYPE_SKYBOX, DEFAULT_GLSL_SKYBOX_PROGRAM, NULL, NULL, 0, 0 );
+}
+
+/*
+* RP_Init
+*/
+void RP_Init( void )
+{
+	int program;
+
+	if( r_glslprograms_initialized ) {
+		return;
+	}
+
+	RP_ReloadShaders_f();
 
 	// check whether compilation of the shader with GPU skinning succeeds, if not, disable GPU bone transforms
-	if ( glConfig.maxGLSLBones ) {
-		program = RP_RegisterProgram( GLSL_PROGRAM_TYPE_MATERIAL, DEFAULT_GLSL_MATERIAL_PROGRAM, NULL, NULL, 0, GLSL_SHADER_COMMON_BONE_TRANSFORMS1 );
-		if ( !program ) {
-			glConfig.maxGLSLBones = 0;
+	if( glConfig.maxGLSLBones ) {
+		int program = RP_RegisterProgram( GLSL_PROGRAM_TYPE_MATERIAL, DEFAULT_GLSL_MATERIAL_PROGRAM, NULL, NULL, 0, GLSL_SHADER_COMMON_BONE_TRANSFORMS1 );
+		if( !program ) {
+			// drop support for ancient gpu
+			ri.Com_Error( ERR_FATAL, "Your GPU does not support GPU Skinning." );
 		}
 	}
 
 	r_glslprograms_initialized = true;
+
+	ri.Cmd_AddCommand( "r_reloadshaders", RP_ReloadShaders_f );
 }
 
 /*
@@ -317,16 +325,6 @@ void RP_PrecachePrograms( void )
 
 			Q_strncpyz( name, token, sizeof( name ) );
 			features = (hb << 32) | lb;
-#ifdef GL_ES_VERSION_2_0
-			if( isDefaultCache ) {
-				if( glConfig.ext.fragment_precision_high ) {
-					features |= GLSL_SHADER_COMMON_FRAGMENT_HIGHP;
-				}
-				else {
-					features &= ~GLSL_SHADER_COMMON_FRAGMENT_HIGHP;
-				}
-			}
-#endif
 
 			// read optional binary cache
 			token = COM_ParseExt_r( tempbuf, sizeof( tempbuf ), ptr, false );
@@ -931,11 +929,7 @@ static const glsl_feature_t * const glsl_programtypes_features[] =
 #define STR_TOSTR( x )					STR_HELPER( x )
 #endif
 
-#define QF_GLSL_VERSION120 "#version 120\n"
-#define QF_GLSL_VERSION130 "#version 130\n"
-#define QF_GLSL_VERSION140 "#version 140\n"
-#define QF_GLSL_VERSION300ES "#version 300 es\n"
-#define QF_GLSL_VERSION310ES "#version 310 es\n"
+#define QF_GLSL_VERSION330 "#version 330\n"
 
 #define QF_GLSL_ENABLE_ARB_GPU_SHADER5 "#extension GL_ARB_gpu_shader5 : enable\n"
 #define QF_GLSL_ENABLE_EXT_GPU_SHADER5 "#extension GL_EXT_gpu_shader5 : enable\n"
@@ -944,27 +938,7 @@ static const glsl_feature_t * const glsl_programtypes_features[] =
 #define QF_GLSL_ENABLE_EXT_TEXTURE_ARRAY "#extension GL_EXT_texture_array : enable\n"
 #define QF_GLSL_ENABLE_OES_TEXTURE_3D "#extension GL_OES_texture_3D : enable\n"
 
-#define QF_BUILTIN_GLSL_MACROS_GLSL120 "" \
-"#define qf_varying varying\n" \
-"#define qf_flat_varying varying\n" \
-"#ifdef VERTEX_SHADER\n" \
-"# define qf_FrontColor gl_FrontColor\n" \
-"# define qf_attribute attribute\n" \
-"#endif\n" \
-"#ifdef FRAGMENT_SHADER\n" \
-"# define qf_FrontColor gl_Color\n" \
-"# define qf_FragColor gl_FragColor\n" \
-"#endif\n" \
-"#define qf_texture texture2D\n" \
-"#define qf_textureLod texture2DLod\n" \
-"#define qf_textureCube textureCube\n" \
-"#define qf_textureArray texture2DArray\n" \
-"#define qf_texture3D texture3D\n" \
-"#define qf_textureOffset(a,b,c,d) texture2DOffset(a,b,ivec2(c,d))\n" \
-"#define qf_shadow shadow2D\n" \
-"\n"
-
-#define QF_BUILTIN_GLSL_MACROS_GLSL130 "" \
+#define QF_BUILTIN_GLSL_MACROS_GLSL330 "" \
 "precision highp float;\n" \
 "#ifdef VERTEX_SHADER\n" \
 "  out vec4 qf_FrontColor;\n" \
@@ -975,6 +949,8 @@ static const glsl_feature_t * const glsl_programtypes_features[] =
 "#ifdef FRAGMENT_SHADER\n" \
 "  in vec4 qf_FrontColor;\n" \
 "  out vec4 qf_FragColor;\n" \
+"  out vec4 qf_FragNormal;\n" \
+"  out vec4 qf_FragMotionVector;\n" \
 "# define qf_varying in\n" \
 "# define qf_flat_varying flat in\n" \
 "#endif\n" \
@@ -984,66 +960,6 @@ static const glsl_feature_t * const glsl_programtypes_features[] =
 "#define qf_textureArray texture\n" \
 "#define qf_texture3D texture\n" \
 "#define qf_textureOffset(a,b,c,d) textureOffset(a,b,ivec2(c,d))\n" \
-"#define qf_shadow texture\n" \
-"\n"
-
-#define QF_BUILTIN_GLSL_MACROS_GLSL100ES "" \
-"#define qf_varying varying\n" \
-"#define qf_flat_varying varying\n" \
-"#ifdef VERTEX_SHADER\n" \
-"# define qf_attribute attribute\n" \
-"#endif\n" \
-"#ifdef FRAGMENT_SHADER\n" \
-"# if defined(GL_FRAGMENT_PRECISION_HIGH) && defined(QF_FRAGMENT_PRECISION_HIGH)\n" \
-"   precision highp float;\n" \
-"# else\n" \
-"   precision mediump float;\n" \
-"# endif\n" \
-"# ifdef GL_EXT_texture_array\n" \
-"   precision lowp sampler2DArray;\n" \
-"# endif\n" \
-"# ifdef GL_OES_texture_3D\n" \
-"   precision lowp sampler3D;\n" \
-"# endif\n" \
-"# ifdef GL_EXT_shadow_samplers\n" \
-"   precision lowp sampler2DShadow;\n" \
-"# endif\n" \
-"# define qf_FragColor gl_FragColor\n" \
-"#endif\n" \
-" qf_varying vec4 qf_FrontColor;\n" \
-"#define qf_texture texture2D\n" \
-"#define qf_textureLod texture2DLod\n" \
-"#define qf_textureCube textureCube\n" \
-"#define qf_textureArray texture2DArray\n" \
-"#define qf_texture3D texture3D\n" \
-"#define qf_shadow shadow2DEXT\n" \
-"\n"
-
-#define QF_BUILTIN_GLSL_MACROS_GLSL300ES "" \
-"#ifdef VERTEX_SHADER\n" \
-"# define qf_varying out\n" \
-"# define qf_flat_varying flat out\n" \
-"# define qf_attribute in\n" \
-"#endif\n" \
-"#ifdef FRAGMENT_SHADER\n" \
-"# ifdef QF_FRAGMENT_PRECISION_HIGH\n" \
-"   precision highp float;\n" \
-"# else\n" \
-"   precision mediump float;\n" \
-"# endif\n" \
-"  precision lowp sampler2DArray;\n" \
-"  precision lowp sampler3D;\n" \
-"  precision lowp sampler2DShadow;\n" \
-"  layout(location = 0) out vec4 qf_FragColor;\n" \
-"# define qf_varying in\n" \
-"# define qf_flat_varying flat in\n" \
-"#endif\n" \
-" qf_varying vec4 qf_FrontColor;\n" \
-"#define qf_texture texture\n" \
-"#define qf_textureLod textureLod\n" \
-"#define qf_textureCube texture\n" \
-"#define qf_textureArray texture\n" \
-"#define qf_texture3D texture\n" \
 "#define qf_shadow texture\n" \
 "\n"
 
@@ -1609,11 +1525,7 @@ static int RP_RegisterProgramBinary( int type, const char *name, const char *def
 	int linked, error = 0;
 	int shaderTypeIdx, wavefuncsIdx, deformvIdx, dualQuatsIdx, instancedIdx, vTransformsIdx;
 	int enableTextureArrayIdx;
-#ifndef GL_ES_VERSION_2_0
 	int enableInstancedIdx;
-#else
-	int enableShadowIdx, enableTexture3DIdx;
-#endif
 	int body_start, num_init_strings;
 	glsl_program_t *program;
 	char fullName[1024];
@@ -1709,70 +1621,22 @@ static int RP_RegisterProgramBinary( int type, const char *name, const char *def
 	ri.Com_DPrintf( "Registering GLSL program %s\n", fullName );
 
 	i = 0;
-#ifdef GL_ES_VERSION_2_0
-	if( glConfig.shadingLanguageVersion >= 310 ) {
-		shaderStrings[i++] = QF_GLSL_VERSION310ES;
-	}
-	else if( glConfig.shadingLanguageVersion >= 300 ) {
-		shaderStrings[i++] = QF_GLSL_VERSION300ES;
-	}
-#else
-	if( glConfig.shadingLanguageVersion >= 140 ) {
-		shaderStrings[i++] = QF_GLSL_VERSION140;
-	}
-	else if( glConfig.shadingLanguageVersion >= 130 ) {
-		shaderStrings[i++] = QF_GLSL_VERSION130;
-	}
-	else {
-		shaderStrings[i++] = QF_GLSL_VERSION120;
-	}
-#endif
 
-	if( glConfig.ext.gpu_shader5 ) {
-#ifndef GL_ES_VERSION_2_0
-		shaderStrings[i++] = QF_GLSL_ENABLE_ARB_GPU_SHADER5;
-#else
-		shaderStrings[i++] = QF_GLSL_ENABLE_EXT_GPU_SHADER5;
-#endif
+	if( glConfig.shadingLanguageVersion < 330 ) {
+		ri.Com_Error( ERR_FATAL, "Unsupported GPU." );
 	}
+
+	shaderStrings[i++] = QF_GLSL_VERSION330;
+	shaderStrings[i++] = QF_GLSL_ENABLE_ARB_GPU_SHADER5;
 
 	enableTextureArrayIdx = i;
 	shaderStrings[i++] = "\n";
-#ifndef GL_ES_VERSION_2_0
 	enableInstancedIdx = i;
-	if( glConfig.shadingLanguageVersion < 400 && glConfig.ext.draw_instanced )
-		shaderStrings[i++] = QF_GLSL_ENABLE_ARB_DRAW_INSTANCED;
-	else
-		shaderStrings[i++] = "\n";
-#else
-	enableShadowIdx = i;
-	shaderStrings[i++] = "\n";
-	enableTexture3DIdx = i;
-	shaderStrings[i++] = "\n";
-#endif
 
 	shaderStrings[i++] = shaderVersion;
 	shaderTypeIdx = i;
 	shaderStrings[i++] = "\n";
-#ifdef GL_ES_VERSION_2_0
-	if( features & GLSL_SHADER_COMMON_FRAGMENT_HIGHP ) {
-		shaderStrings[i++] = "#define QF_FRAGMENT_PRECISION_HIGH\n";
-	}
-
-	if( glConfig.shadingLanguageVersion >= 300 ) {
-		shaderStrings[i++] = QF_BUILTIN_GLSL_MACROS_GLSL300ES;
-	}
-	else {
-		shaderStrings[i++] = QF_BUILTIN_GLSL_MACROS_GLSL100ES;
-	}
-#else
-	if( glConfig.shadingLanguageVersion >= 130 ) {
-		shaderStrings[i++] = QF_BUILTIN_GLSL_MACROS_GLSL130;
-	}
-	else {
-		shaderStrings[i++] = QF_BUILTIN_GLSL_MACROS_GLSL120;
-	}
-#endif
+	shaderStrings[i++] = QF_BUILTIN_GLSL_MACROS_GLSL330;
 	shaderStrings[i++] = QF_BUILTIN_GLSL_CONSTANTS;
 	Q_snprintfz( maxBones, sizeof( maxBones ),
 		"#define MAX_UNIFORM_BONES %i\n", glConfig.maxGLSLBones );
@@ -1847,21 +1711,9 @@ static int RP_RegisterProgramBinary( int type, const char *name, const char *def
 	}
 
 	// fragment shader
-#ifndef GL_ES_VERSION_2_0
 	if( glConfig.ext.texture_array )
 		shaderStrings[enableTextureArrayIdx] = QF_GLSL_ENABLE_EXT_TEXTURE_ARRAY;
 	shaderStrings[enableInstancedIdx] = "\n";
-#else
-	if( glConfig.shadingLanguageVersion < 300 )
-	{
-		if( glConfig.ext.texture_array )
-			shaderStrings[enableTextureArrayIdx] = QF_GLSL_ENABLE_EXT_TEXTURE_ARRAY;
-		if( glConfig.ext.shadow )
-			shaderStrings[enableShadowIdx] = QF_GLSL_ENABLE_EXT_SHADOW_SAMPLERS;
-		if( glConfig.ext.texture3D )
-			shaderStrings[enableTexture3DIdx] = QF_GLSL_ENABLE_OES_TEXTURE_3D;
-	}
-#endif
 
 	shaderStrings[shaderTypeIdx] = "#define FRAGMENT_SHADER\n";
 	shaderStrings[wavefuncsIdx] = "\n";
@@ -2716,9 +2568,10 @@ static void RP_BindAttrbibutesLocations( glsl_program_t *program )
 		qglBindAttribLocationARB( program->object, VATTRIB_INSTANCE_XYZS, "a_InstancePosAndScale" );
 	}
 
-	if( glConfig.shadingLanguageVersion >= 130 ) {
-		qglBindFragDataLocation( program->object, 0, "qf_FragColor" );
-	}
+	// GLSL 300+ always supports fragment data location binding
+	qglBindFragDataLocation( program->object, 0, "qf_FragColor" );
+	qglBindFragDataLocation( program->object, 1, "qf_FragNormal" );
+	qglBindFragDataLocation( program->object, 2, "qf_FragMotionVector" );
 }
 
 /*

@@ -920,10 +920,7 @@ static void RB_RenderMeshGLSL_Material( const shaderpass_t *pass, r_glslfeat_t p
 		programFeatures |= RB_DlightbitsToProgramFeatures( rb.currentDlightBits );
 	}
 
-	// 根据调试cvar添加运动向量特性
-	if( r_debugMotionVector->integer ) {
-		programFeatures |= GLSL_SHADER_COMMON_MOTION_VECTORS;
-	}
+	programFeatures |= GLSL_SHADER_COMMON_MOTION_VECTORS;
 
 	Matrix4_Identity( texMatrix );
 
@@ -1562,8 +1559,7 @@ static void RB_RenderMeshGLSL_Q3AShader( const shaderpass_t *pass, r_glslfeat_t 
 		programFeatures |= GLSL_SHADER_Q3_ALPHA_MASK;
 	}
 
-	// 根据调试cvar添加运动向量特性
-	if( r_debugMotionVector && r_debugMotionVector->integer ) {
+	if( r_motionblur && r_motionblur->integer ) {
 		programFeatures |= GLSL_SHADER_COMMON_MOTION_VECTORS;
 	}
 
@@ -1637,7 +1633,7 @@ static void RB_RenderMeshGLSL_Q3AShader( const shaderpass_t *pass, r_glslfeat_t 
 
 		if( programFeatures & GLSL_SHADER_COMMON_SOFT_PARTICLE ) {
 			RP_UpdateTextureUniforms( program, 
-				rsh.screenDepthTexture->upload_width, rsh.screenDepthTexture->upload_height );
+				rsh.screenTextures[FBO_TEXTURE_DEPTH]->upload_width, rsh.screenTextures[FBO_TEXTURE_DEPTH]->upload_height );
 		}
 
 		RB_DrawElementsReal( &rb.drawElements );
@@ -1682,11 +1678,7 @@ static void RB_RenderMeshGLSL_Celshade( const shaderpass_t *pass, r_glslfeat_t p
 
 	// convert rgbgen and alphagen to GLSL feature defines
 	programFeatures |= RB_RGBAlphaGenToProgramFeatures( &pass->rgbgen, &pass->alphagen );
-
-	// 根据调试cvar添加运动向量特性
-	if( r_debugMotionVector && r_debugMotionVector->integer ) {
-		programFeatures |= GLSL_SHADER_COMMON_MOTION_VECTORS;
-	}
+	programFeatures |= GLSL_SHADER_COMMON_MOTION_VECTORS;
 
 	// set shaderpass state (blending, depthwrite, etc)
 	RB_SetShaderpassState( pass->flags );
@@ -1793,10 +1785,7 @@ static void RB_RenderMeshGLSL_FXAA( const shaderpass_t *pass, r_glslfeat_t progr
 
 	if( glConfig.ext.gpu_shader5 )
 		fxaa3 = true;
-#ifdef GL_ES_VERSION_2_0
-	if( glConfig.shadingLanguageVersion >= 310 )
-		fxaa3 = true;
-#endif
+
 	if( fxaa3 )
 		programFeatures |= GLSL_SHADER_FXAA_FXAA3;
 
@@ -1868,6 +1857,28 @@ static void RB_RenderMeshGLSL_ColorCorrection( const shaderpass_t *pass, r_glslf
 }
 
 /*
+ * RB_RenderMeshGLSL_Q3AShader
+ */
+static void RB_RenderMeshGLSL_Skybox( const shaderpass_t *pass, r_glslfeat_t programFeatures )
+{
+	const image_t *image = RB_ShaderpassTex( pass );
+
+	if( image->flags & IT_ALPHAMASK ) {
+		programFeatures |= GLSL_SHADER_Q3_ALPHA_MASK;
+	}
+
+	RB_BindImage( 0, image );
+	RB_SetShaderpassState( pass->flags );
+
+	// update uniforms
+	int program = RB_RegisterProgram( GLSL_PROGRAM_TYPE_SKYBOX, NULL, rb.currentShader->deformsKey, rb.currentShader->deforms, rb.currentShader->numdeforms, programFeatures );
+	if( RB_BindProgram( program ) ) {
+		RB_UpdateCommonUniforms( program, pass, NULL );
+		RB_DrawElementsReal( &rb.drawElements );
+	}
+}
+
+/*
 * RB_RenderMeshGLSLProgrammed
 */
 void RB_RenderMeshGLSLProgrammed( const shaderpass_t *pass, int programType )
@@ -1877,11 +1888,6 @@ void RB_RenderMeshGLSLProgrammed( const shaderpass_t *pass, int programType )
 	if( rb.greyscale || pass->flags & SHADERPASS_GREYSCALE ) {
 		features |= GLSL_SHADER_COMMON_GREYSCALE;
 	}
-#ifdef GL_ES_VERSION_2_0
-	if( glConfig.ext.fragment_precision_high ) {
-		features |= GLSL_SHADER_COMMON_FRAGMENT_HIGHP;
-	}
-#endif
 
 	features |= RB_BonesTransformsToProgramFeatures();
 	features |= RB_AutospriteProgramFeatures();
@@ -1929,6 +1935,9 @@ void RB_RenderMeshGLSLProgrammed( const shaderpass_t *pass, int programType )
 		break;
 	case GLSL_PROGRAM_TYPE_COLORCORRECTION:
 		RB_RenderMeshGLSL_ColorCorrection( pass, features );
+		break;
+	case GLSL_PROGRAM_TYPE_SKYBOX:
+		RB_RenderMeshGLSL_Skybox( pass, features );
 		break;
 	default:
 		ri.Com_DPrintf( S_COLOR_YELLOW "WARNING: Unknown GLSL program type %i\n", programType );
@@ -2335,7 +2344,6 @@ static inline const vec_t *RB_TriangleLinesColor( void )
 */
 void RB_DrawOutlinedElements( void )
 {
-#ifndef GL_ES_VERSION_2_0
 	static shaderpass_t r_triLinesPass;
 	static vec4_t r_triLinesColor;
 	shaderpass_t *pass;
@@ -2375,7 +2383,6 @@ void RB_DrawOutlinedElements( void )
 	RB_SetShaderState();
 
 	RB_RenderPass( &r_triLinesPass );
-#endif
 }
 
 /*

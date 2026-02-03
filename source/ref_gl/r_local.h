@@ -51,6 +51,16 @@ enum
 	NUM_QGL_CONTEXTS = QGL_CONTEXT_LOADER + NUM_LOADER_THREADS
 };
 
+typedef enum {
+	FBO_TEXTURE_COLOR,
+	FBO_TEXTURE_NORMAL,
+	FBO_TEXTURE_MOTION_VECTOR,
+
+	FBO_TEXTURE_DEPTH,
+
+	FBO_TEXTURE_COUNT,
+} FBO_TEXTURE_TYPE;
+
 #include "r_math.h"
 #include "r_public.h"
 #include "r_vattribs.h"
@@ -235,11 +245,11 @@ typedef struct
 	image_t			*coronaTexture;
 	image_t			*portalTextures[MAX_PORTAL_TEXTURES+1];
 	image_t			*shadowmapTextures[MAX_SHADOWGROUPS];
-	image_t			*screenTexture;
-	image_t			*screenDepthTexture;
+
+	image_t			*screenTextures[FBO_TEXTURE_COUNT];
+
 	image_t			*screenTextureCopy;
 	image_t			*screenDepthTextureCopy;
-	image_t			*screenPPCopies[2];
 
 	shader_t		*envShader;
 	shader_t		*skyShader;
@@ -403,6 +413,10 @@ extern cvar_t *r_outlines_cutoff;
 extern cvar_t *r_soft_particles;
 extern cvar_t *r_soft_particles_scale;
 
+extern cvar_t *r_postprocess;
+extern cvar_t *r_motionblur;
+extern cvar_t *r_ssao;
+extern cvar_t *r_bloom;
 extern cvar_t *r_fxaa;
 
 extern cvar_t *r_lodbias;
@@ -436,7 +450,7 @@ extern cvar_t *r_maxglslbones;
 
 extern cvar_t *r_multithreading;
 
-extern cvar_t *r_debugMotionVector; // 调试运动向量显示
+extern cvar_t *r_debugMotionVector;
 
 extern cvar_t *gl_cull;
 
@@ -508,9 +522,10 @@ int			RFB_RegisterObject( int width, int height, bool builtin, bool depthRB, boo
 void		RFB_UnregisterObject( int object );
 void		RFB_TouchObject( int object );
 void		RFB_BindObject( int object );
+void		RFB_SetupMRT( int object );
 int			RFB_BoundObject( void );
-void		RFB_AttachTextureToObject( int object, image_t *texture );
-image_t		*RFB_GetObjectTextureAttachment( int object, bool depth );
+void		RFB_AttachTextureToObject( int object, image_t *texture, FBO_TEXTURE_TYPE type );
+image_t		*RFB_GetObjectTextureAttachment( int object, FBO_TEXTURE_TYPE type );
 void		RFB_BlitObject( int dest, int bitMask, int mode );
 bool	RFB_CheckObjectStatus( void );
 void		RFB_GetObjectSize( int object, int *width, int *height );

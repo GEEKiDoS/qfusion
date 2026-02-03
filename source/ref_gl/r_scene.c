@@ -299,6 +299,24 @@ static void R_BlitTextureToScrFbo( const refdef_t *fd, image_t *image, int dstFb
 	RB_Scissor( 0, 0, rf.frameBufferWidth, rf.frameBufferHeight );
 }
 
+void R_PostProcess( const image_t *ppSource, const refdef_t *fd )
+{
+	if( !r_postprocess->integer || !ppSource ) {
+		return;
+	}
+
+	// apply FXAA
+	if( r_fxaa->integer ) {
+		R_BlitTextureToScrFbo( fd, ppSource, 0, GLSL_PROGRAM_TYPE_FXAA, colorWhite, 0, 0, NULL );
+	}
+
+	// apply color correction
+	shader_t *cc = rn.refdef.colorCorrection;
+	if( cc && cc->numpasses > 0 && cc->passes[0].images[0] && cc->passes[0].images[0] != rsh.noTexture ) {
+		R_BlitTextureToScrFbo( fd, ppSource, 0, GLSL_PROGRAM_TYPE_COLORCORRECTION, colorWhite, 0, 1, &( rn.refdef.colorCorrection->passes[0].images[0] ) );
+	}
+}
+
 /*
 * R_RenderScene
 */
@@ -341,31 +359,12 @@ void R_RenderScene( const refdef_t *fd )
 	rn.fbColorAttachment = rn.fbDepthAttachment = NULL;
 	
 	if( !( fd->rdflags & RDF_NOWORLDMODEL ) ) {
-		if( r_soft_particles->integer && ( rsh.screenTexture != NULL ) ) {
-			rn.fbColorAttachment = rsh.screenTexture;
-			rn.fbDepthAttachment = rsh.screenDepthTexture;
+		rn.fbColorAttachment = rsh.screenTextures[FBO_TEXTURE_COLOR];
+		rn.fbDepthAttachment = rsh.screenTextures[FBO_TEXTURE_DEPTH];
+		
+		if( r_soft_particles->integer ) {
 			rn.renderFlags |= RF_SOFT_PARTICLES;
 			fbFlags |= 1;
-		}
-
-		if( rsh.screenPPCopies[0] && rsh.screenPPCopies[1] ) {
-			int oldFlags = fbFlags;
-			shader_t *cc = rn.refdef.colorCorrection;
-
-			if( r_fxaa->integer ) {
-				fbFlags |= 2;
-			}
-
-			if( cc && cc->numpasses > 0 && cc->passes[0].images[0] && cc->passes[0].images[0] != rsh.noTexture ) {
-				fbFlags |= 4;
-			}
-
-			if( fbFlags != oldFlags ) {
-				if( !rn.fbColorAttachment ) {
-					rn.fbColorAttachment = rsh.screenPPCopies[0];
-					ppFrontBuffer = 1;
-				}
-			}
 		}
 	}
 
@@ -409,37 +408,16 @@ void R_RenderScene( const refdef_t *fd )
 			colorWhite, 0,
 			0, NULL );
 	}
+
 	fbFlags &= ~1;
 
-	// apply FXAA
-	if( fbFlags & 2 ) {
-		image_t *dest;
+	if( !( fd->rdflags & RDF_NOWORLDMODEL ) ) {
+		R_PostProcess( ppSource, fd );
 
-		fbFlags &= ~2;
-		dest = fbFlags ? rsh.screenPPCopies[ppFrontBuffer] : NULL;
-
-		R_BlitTextureToScrFbo( fd,
-			ppSource, dest ? dest->fbo : 0,
-			GLSL_PROGRAM_TYPE_FXAA,
-			colorWhite, 0,
-			0, NULL );
-
-		ppFrontBuffer ^= 1;
-		ppSource = dest;
-	}
-
-	// apply color correction
-	if( fbFlags & 4 ) {
-		image_t *dest;
-
-		fbFlags &= ~4;
-		dest = fbFlags ? rsh.screenPPCopies[ppFrontBuffer] : NULL;
-
-		R_BlitTextureToScrFbo( fd,
-			ppSource, dest ? dest->fbo : 0,
-			GLSL_PROGRAM_TYPE_COLORCORRECTION,
-			colorWhite, 0,
-			1, &( rn.refdef.colorCorrection->passes[0].images[0] ) );
+		if( r_debugMotionVector->integer ) {
+			R_BlitTextureToScrFbo( fd, rsh.screenTextures[FBO_TEXTURE_MOTION_VECTOR], 0,  
+								  GLSL_PROGRAM_TYPE_NONE, colorWhite, 0, 0, NULL );
+		}
 	}
 }
 
