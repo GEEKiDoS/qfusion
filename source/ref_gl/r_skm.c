@@ -908,23 +908,39 @@ typedef struct skmcacheentry_s
 	struct skmcacheentry_s *next;
 } skmcacheentry_t;
 
-mempool_t *r_skmcachepool;
+mempool_t *r_skmcachepool_a;
+mempool_t *r_skmcachepool_b;
 
-static skmcacheentry_t *r_skmcache_head;	// actual entries are linked to this
-static skmcacheentry_t *r_skmcache_free;	// actual entries are linked to this
-static skmcacheentry_t *r_skmcachekeys[MAX_REF_ENTITIES*(MOD_MAX_LODS+1)];		// entities linked to cache entries
+static skmcacheentry_t *r_skmcache_head_a;	// actual entries are linked to this
+static skmcacheentry_t *r_skmcache_head_b;	// actual entries are linked to this
+static skmcacheentry_t *r_skmcache_free_a;	// actual entries are linked to this
+static skmcacheentry_t *r_skmcache_free_b;	// actual entries are linked to this
+static skmcacheentry_t *r_skmcachekeys_a[MAX_REF_ENTITIES*(MOD_MAX_LODS+1)];		// entities linked to cache entries
+static skmcacheentry_t *r_skmcachekeys_b[MAX_REF_ENTITIES*(MOD_MAX_LODS+1)];		// entities linked to cache entries
 
-#define R_SKMCacheAlloc(size) R_MallocExt(r_skmcachepool, (size), 16, 1)
+#define R_SKMCacheAllocA(size) R_MallocExt(r_skmcachepool_a, (size), 16, 1)
+#define R_SKMCacheAllocB(size) R_MallocExt(r_skmcachepool_b, (size), 16, 1)
+
+static bool r_skmcache_flip = false;
+
+#define r_skmcachepool ( r_skmcache_flip ? r_skmcachepool_b : r_skmcachepool_a )
+#define r_skmcache_head ( r_skmcache_flip ? r_skmcache_head_b : r_skmcache_head_a )
+#define r_skmcache_free ( r_skmcache_flip ? r_skmcache_free_b : r_skmcache_free_a )
+#define r_skmcachekeys ( r_skmcache_flip ? r_skmcachekeys_b : r_skmcachekeys_a )
+#define R_SKMCacheAlloc( size ) ( r_skmcache_flip ? R_SKMCacheAllocB(size) : R_SKMCacheAllocA(size) )
 
 /*
 * R_InitSkeletalCache
 */
 void R_InitSkeletalCache( void )
 {
-	r_skmcachepool = R_AllocPool( r_mempool, "SKM Cache" );
+	r_skmcachepool_a = R_AllocPool( r_mempool, "SKM Cache A" );
+	r_skmcachepool_b = R_AllocPool( r_mempool, "SKM Cache A" );
 
-	r_skmcache_head = NULL;
-	r_skmcache_free = NULL;
+	r_skmcache_head_a = NULL;
+	r_skmcache_free_a = NULL;
+	r_skmcache_head_b = NULL;
+	r_skmcache_free_b = NULL;
 }
 
 /*
@@ -935,6 +951,21 @@ static uint8_t *R_GetSkeletalCache( int entNum, int lodNum )
 	skmcacheentry_t *cache;
 	
 	cache = r_skmcachekeys[entNum*(MOD_MAX_LODS+1) + lodNum];
+	if( !cache ) {
+		return NULL;
+	}
+	return cache->data;
+}
+
+/*
+ * R_GetLastSkeletalCache
+ */
+static uint8_t *R_GetLastSkeletalCache( int entNum, int lodNum )
+{
+	skmcacheentry_t *cache;
+
+	// inverted, for get skeletal cache from last frame
+	cache = ( r_skmcache_flip ? r_skmcachekeys_a : r_skmcachekeys_b )[entNum * ( MOD_MAX_LODS + 1 ) + lodNum];
 	if( !cache ) {
 		return NULL;
 	}
@@ -998,12 +1029,20 @@ static uint8_t *R_AllocSkeletalDataCache( int entNum, int lodNum, size_t size )
 		best_prev->next = best->next;
 	}
 	if( best == r_skmcache_free ) {
-		r_skmcache_free = best->next;
+		if( r_skmcache_flip ) {
+			r_skmcache_free_b = best->next;
+		} else {
+			r_skmcache_free_a = best->next;
+		}
 	}
 
 	// and link it to the allocation list
 	best->next = r_skmcache_head;
-	r_skmcache_head = best;
+	if( r_skmcache_flip ) {
+		r_skmcache_head_b = best;
+	} else {
+		r_skmcache_head_a = best;
+	}
 	r_skmcachekeys[entNum * (MOD_MAX_LODS+1) + lodNum] = best;
 
 	return best->data;
@@ -1019,18 +1058,29 @@ void R_ClearSkeletalCache( void )
 {
 	skmcacheentry_t *next, *cache;
 
+	// flip the cache state
+	r_skmcache_flip = !r_skmcache_flip;
+
 	cache = r_skmcache_head;
 	while( cache ) {
 		next = cache->next;
 
 		cache->next = r_skmcache_free;
-		r_skmcache_free = cache;
+		if( r_skmcache_flip ) {
+			r_skmcache_free_b = cache;
+		} else {
+			r_skmcache_free_a = cache;
+		}
 
 		cache = next;
 	}
-	r_skmcache_head = NULL;
+	if( r_skmcache_flip ) {
+		r_skmcache_head_b = NULL;
+	} else {
+		r_skmcache_head_a = NULL;
+	}
 
-	memset( r_skmcachekeys, 0, sizeof( r_skmcachekeys ) );
+	memset( r_skmcachekeys, 0, sizeof( r_skmcachekeys_a ) );
 }
 
 /*
@@ -1041,10 +1091,14 @@ void R_ShutdownSkeletalCache( void )
 	if( !r_skmcachepool )
 		return;
 
-	R_FreePool( &r_skmcachepool );
+	R_FreePool( &r_skmcachepool_a );
+	R_FreePool( &r_skmcachepool_b );
 
-	r_skmcache_head = NULL;
-	r_skmcache_free = NULL;
+	r_skmcache_head_a = NULL;
+	r_skmcache_free_a = NULL;
+
+	r_skmcache_head_b = NULL;
+	r_skmcache_free_b = NULL;
 }
 
 //=======================================================================
@@ -1169,16 +1223,13 @@ void R_DrawSkeletalSurf( const entity_t *e, const shader_t *shader, const mfog_t
 	const bonepose_t *bp, *oldbp, *bonepose, *oldbonepose, *lerpedbonepose;
 	bonepose_t *out, tp;
 	mskbone_t *bone;
-	mat4_t *bonePoseRelativeMat;
 	dualquat_t *bonePoseRelativeDQ;
 	size_t bonePoseRelativeMatSize, bonePoseRelativeDQSize;
 	const model_t *mod = drawSurf->model;
 	const mskmodel_t *skmodel = ( const mskmodel_t * )mod->extradata;
 	const mskmesh_t *skmesh = drawSurf->mesh;
-	bool hardwareTransform = skmesh->vbo != NULL && glConfig.maxGLSLBones > 0 ? true : false;
 	vattribmask_t vattribs;
 
-	bonePoseRelativeMat = NULL;
 	bonePoseRelativeDQ = NULL;
 
 	bp = e->boneposes;
@@ -1237,10 +1288,7 @@ void R_DrawSkeletalSurf( const entity_t *e, const shader_t *shader, const mfog_t
 
 	// fetch bones tranforms from cache (both matrices and dual quaternions)
 	bonePoseRelativeDQ = ( dualquat_t * )R_GetSkeletalCache( R_ENT2NUM( e ), mod->lodnum );
-	if( bonePoseRelativeDQ ) {
-		bonePoseRelativeMat = ( mat4_t * )(( uint8_t * )bonePoseRelativeDQ + bonePoseRelativeDQSize);
-	}
-	else {
+	if( !bonePoseRelativeDQ ) {
 		// lerp boneposes and store results in cache
 
 		lerpedbonepose = tempbonepose;
@@ -1308,87 +1356,18 @@ void R_DrawSkeletalSurf( const entity_t *e, const shader_t *shader, const mfog_t
 			DualQuat_Multiply( lerpedbonepose[i].dualquat, skmodel->invbaseposes[i].dualquat, bonePoseRelativeDQ[i] );
 			DualQuat_Normalize( bonePoseRelativeDQ[i] );
 		}
-
-		// CPU transforms
-		if( !hardwareTransform ) {
-			bonePoseRelativeMat = ( mat4_t * )(( uint8_t * )bonePoseRelativeDQ + bonePoseRelativeDQSize);
-
-			// generate matrices for all bones
-			for( i = 0; i < skmodel->numbones; i++ ) {
-				Matrix4_FromDualQuaternion( bonePoseRelativeDQ[i], bonePoseRelativeMat[i] );
-			}
-
-			// generate matrices for all blend combinations
-			R_SkeletalBlendPoses( skmodel->numblends, skmodel->blends, skmodel->numbones, bonePoseRelativeMat );
-		}
 	}
 
-	if( hardwareTransform )
-	{
-		dualquat_t *prevBonePoseRelativeDQ = NULL;
+	dualquat_t *prevBonePoseRelativeDQ = (dualquat_t *)R_GetLastSkeletalCache( R_ENT2NUM( e ), mod->lodnum );
+	// fallback to current
+	if( !prevBonePoseRelativeDQ ) {
+		prevBonePoseRelativeDQ = bonePoseRelativeDQ;
+	}
 		
-		// 计算上一帧的骨骼变换（用于运动向量）
-		if( e->oldboneposes && e->boneposes && e->backlerp < 1.0f ) {
-			// 使用上一帧的骨骼姿势计算变换
-			bonepose_t *prevBp = e->oldboneposes;
-			bonepose_t *prevOldBp = e->boneposes; // 对于上一帧来说，当前帧是"old"
-			float prevFrontlerp = 1.0f - e->backlerp; // 上一帧的插值因子
-			
-			// 临时缓冲区用于存储上一帧的骨骼变换
-			static bonepose_t prevTempBonepose[MAX_GLSL_UNIFORM_BONES];
-			dualquat_t prevBoneDQ[MAX_GLSL_UNIFORM_BONES];
-			
-			// 插值上一帧的骨骼姿势
-			for( i = 0; i < skmodel->numbones && i < MAX_GLSL_UNIFORM_BONES; i++ ) {
-				DualQuat_Lerp( prevOldBp[i].dualquat, prevBp[i].dualquat, prevFrontlerp, prevTempBonepose[i].dualquat );
-			}
-			
-			// 生成上一帧的相对对偶四元数
-			for( i = 0; i < skmodel->numbones && i < MAX_GLSL_UNIFORM_BONES; i++ ) {
-				DualQuat_Multiply( prevTempBonepose[i].dualquat, skmodel->invbaseposes[i].dualquat, prevBoneDQ[i] );
-				DualQuat_Normalize( prevBoneDQ[i] );
-			}
-			
-			prevBonePoseRelativeDQ = prevBoneDQ;
-		}
-		
-		RB_BindVBO( skmesh->vbo->index, GL_TRIANGLES );
-		RB_SetBonesData( skmodel->numbones, bonePoseRelativeDQ, prevBonePoseRelativeDQ, skmesh->maxWeights );
-		RB_DrawElements( 0, skmesh->numverts, 0, skmesh->numtris * 3, 
-			0, skmesh->numverts, 0, skmesh->numtris * 3 );
-	}
-	else
-	{
-		mesh_t dynamicMesh;
-
-		memset( &dynamicMesh, 0, sizeof( dynamicMesh ) );
-
-		dynamicMesh.elems = skmesh->elems;
-		dynamicMesh.numElems = skmesh->numtris * 3;
-		dynamicMesh.numVerts = skmesh->numverts;
-
-		R_GetTransformBufferForMesh( &dynamicMesh, true,
-			( vattribs & ( VATTRIB_NORMAL_BIT|VATTRIB_SVECTOR_BIT ) ) ? true : false,
-			( vattribs & VATTRIB_SVECTOR_BIT ) ? true : false );
-
-		R_SkeletalTransformVerts( skmesh->numverts, skmesh->vertexBlends, bonePoseRelativeMat,
-			( vec_t * )skmesh->xyzArray[0], ( vec_t * )( dynamicMesh.xyzArray ) );
-
-		if( vattribs & VATTRIB_SVECTOR_BIT ) {
-			R_SkeletalTransformNormalsAndSVecs( skmesh->numverts, skmesh->vertexBlends, bonePoseRelativeMat,
-				( vec_t * )skmesh->normalsArray[0], ( vec_t * )( dynamicMesh.normalsArray ),
-				( vec_t * )skmesh->sVectorsArray[0], ( vec_t * )( dynamicMesh.sVectorsArray ) );
-		} else if( vattribs & VATTRIB_NORMAL_BIT ) {
-			R_SkeletalTransformNormals( skmesh->numverts, skmesh->vertexBlends, bonePoseRelativeMat,
-				( vec_t * )skmesh->normalsArray[0], ( vec_t * )( dynamicMesh.normalsArray ) );
-		}
-
-		dynamicMesh.stArray = skmesh->stArray;
-
-		RB_AddDynamicMesh( e, shader, fog, portalSurface, shadowBits, &dynamicMesh, GL_TRIANGLES, 0.0f, 0.0f );
-
-		RB_FlushDynamicMeshes();
-	}
+	RB_BindVBO( skmesh->vbo->index, GL_TRIANGLES );
+	RB_SetBonesData( skmodel->numbones, bonePoseRelativeDQ, prevBonePoseRelativeDQ, skmesh->maxWeights );
+	RB_DrawElements( 0, skmesh->numverts, 0, skmesh->numtris * 3, 
+		0, skmesh->numverts, 0, skmesh->numtris * 3 );
 }
 
 /*

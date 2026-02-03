@@ -49,9 +49,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define RDF_PORTALINVIEW		0x8		// cull entities using vis too because pvs\areabits are merged serverside
 #define RDF_SKYPORTALINVIEW		0x10	// draw skyportal instead of regular sky
 #define RDF_FLIPPED				0x20
-#define RDF_WORLDOUTLINES		0x40	// draw cell outlines for world surfaces
-#define RDF_CROSSINGWATER		0x80	// potentially crossing water surface
-#define RDF_USEORTHO			0x100	// use orthographic projection
+#define RDF_CROSSINGWATER		0x40	// potentially crossing water surface
+#define RDF_USEORTHO			0x80	// use orthographic projection
 
 // skm flags
 #define SKM_ATTACHMENT_BONE		1
@@ -140,11 +139,12 @@ typedef struct entity_s
 	bonepose_t *oldboneposes;			// pretransformed boneposes for old frame
 	float backlerp;						// 0.0 = current, 1.0 = old
 	
-	// 上一帧变换信息（用于运动向量）
 	bool haveLastInfo;
-	mat3_t lastAxis;					// 上一帧旋转
-	vec3_t lastOrigin;					// 上一帧位置
-	float lastScale;					// 上一帧缩放
+	mat3_t lastAxis;					
+	vec3_t lastOrigin;					
+	float lastScale;					
+
+	bool isViewModel;
 
 	/*
 	** texturing
@@ -165,13 +165,6 @@ typedef struct entity_s
 	float scale;
 	float radius;						// used as RT_SPRITE's radius
 	float rotation;
-
-	float outlineHeight;
-	union
-	{
-		byte_vec4_t outlineColor;
-		uint8_t outlineRGBA[4];
-	};
 } entity_t;
 
 typedef struct refdef_s

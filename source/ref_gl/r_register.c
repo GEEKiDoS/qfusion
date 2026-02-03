@@ -82,10 +82,6 @@ cvar_t *r_shadows_pcf;
 cvar_t *r_shadows_self_shadow;
 cvar_t *r_shadows_dither;
 
-cvar_t *r_outlines_world;
-cvar_t *r_outlines_scale;
-cvar_t *r_outlines_cutoff;
-
 cvar_t *r_soft_particles;
 cvar_t *r_soft_particles_scale;
 
@@ -672,10 +668,6 @@ static void R_Register( const char *screenshotsPrefix )
 	r_shadows_pcf = ri.Cvar_Get( "r_shadows_pcf", "1", CVAR_ARCHIVE );
 	r_shadows_self_shadow = ri.Cvar_Get( "r_shadows_self_shadow", "0", CVAR_ARCHIVE );
 	r_shadows_dither = ri.Cvar_Get( "r_shadows_dither", "0", CVAR_ARCHIVE );
-
-	r_outlines_world = ri.Cvar_Get( "r_outlines_world", "1.8", CVAR_ARCHIVE );
-	r_outlines_scale = ri.Cvar_Get( "r_outlines_scale", "1", CVAR_ARCHIVE );
-	r_outlines_cutoff = ri.Cvar_Get( "r_outlines_cutoff", "712", CVAR_ARCHIVE );
 
 	r_soft_particles = ri.Cvar_Get( "r_soft_particles", "1", CVAR_ARCHIVE );
 	r_soft_particles_scale = ri.Cvar_Get( "r_soft_particles_scale", "0.02", CVAR_ARCHIVE );

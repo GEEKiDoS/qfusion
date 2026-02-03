@@ -617,7 +617,6 @@ static void CG_AddRaceGhostShell( entity_t *ent )
 
 	shell.customShader = CG_MediaShader( cgs.media.shaderRaceGhostEffect );
 	shell.renderfx |= ( RF_FULLBRIGHT|RF_NOSHADOW );
-	shell.outlineHeight = 0;
 
 	shell.color[0] *= alpha;
 	shell.color[1] *= alpha;
@@ -634,159 +633,6 @@ void CG_AddShellEffects( entity_t *ent, int effects )
 {
 	if( effects & EF_RACEGHOST )
 		CG_AddRaceGhostShell( ent );
-}
-
-/*
-* CG_SetOutlineColor
-*/
-void CG_SetOutlineColor( byte_vec4_t outlineColor, byte_vec4_t color )
-{
-	float darken = 0.25f;
-	outlineColor[0] = ( uint8_t )( color[0] * darken );
-	outlineColor[1] = ( uint8_t )( color[1] * darken );
-	outlineColor[2] = ( uint8_t )( color[2] * darken );
-	outlineColor[3] = ( uint8_t )( 255 );
-}
-
-/*
-* CG_OutlineScaleForDist
-*/
-static float CG_OutlineScaleForDist( entity_t *e, float maxdist, float scale )
-{
-	float dist;
-	vec3_t dir;
-
-	if( e->renderfx & (RF_WEAPONMODEL|RF_VIEWERMODEL) )
-		return 0.14f;
-
-	// Kill if behind the view or if too far away
-	VectorSubtract( e->origin, cg.view.origin, dir );
-	dist = VectorNormalize2( dir, dir ) * cg.view.fracDistFOV;
-	if( dist > maxdist )
-		return 0;
-
-	if( !( e->renderfx & RF_WEAPONMODEL ) )
-	{
-		if( DotProduct( dir, &cg.view.axis[AXIS_FORWARD] ) < 0 )
-			return 0;
-	}
-
-	dist *= scale;
-
-	if( dist < 64 )
-		return 0.14f;
-	if( dist < 128 )
-		return 0.30f;
-	if( dist < 256 )
-		return 0.42f;
-	if( dist < 512 )
-		return 0.56f;
-	if( dist < 768 )
-		return 0.70f;
-
-	return 1.0f;
-}
-
-/*
-* CG_AddColoredOutLineEffect
-*/
-void CG_AddColoredOutLineEffect( entity_t *ent, int effects, uint8_t r, uint8_t g, uint8_t b, uint8_t a )
-{
-	float scale;
-	uint8_t *RGBA;
-
-	if( effects & EF_QUAD )
-	{
-		if( ( effects & EF_EXPIRING_QUAD ) && ((cg.time / 100) & 4) )
-			effects &= ~EF_QUAD;
-	}
-
-	if( effects & EF_SHELL )
-	{
-		if( ( effects & EF_EXPIRING_SHELL ) && (((cg.time + 500) / 100) & 4) )
-			effects &= ~EF_SHELL;
-	}
-
-	if( effects & EF_REGEN )
-	{
-		if( ( effects & EF_EXPIRING_REGEN ) && ((cg.time / 100) & 4) )
-			effects &= ~EF_REGEN;
-	}
-
-
-	if( effects & ( EF_QUAD|EF_SHELL|EF_REGEN|EF_GODMODE ) )
-	{
-		float pulse;
-		scale = CG_OutlineScaleForDist( ent, 2048, 3.5f );
-		pulse = fabs( sin( cg.time * 0.005f ) );
-		scale += 1.25f * scale * pulse * pulse;
-	}
-	else if ( !cg_outlineModels->integer || !( effects & EF_OUTLINE ) )
-	{
-		scale = 0;
-	}
-	else
-	{
-		scale = CG_OutlineScaleForDist( ent, 1024, 1.0f );
-	}
-
-	if( !scale )
-	{
-		ent->outlineHeight = 0;
-		return;
-	}
-
-	ent->outlineHeight = scale;
-	RGBA = ent->outlineRGBA;
-
-	// All powerups
-	if( ( effects & (EF_QUAD|EF_SHELL|EF_REGEN) ) == (EF_QUAD|EF_SHELL|EF_REGEN) )
-	{
-		if( (unsigned int)(cg.time * 0.005) & 1 )
-			effects &= ~EF_SHELL;
-		else if( (unsigned int)(cg.time * 0.01) & 1 )
-			effects &= ~EF_REGEN;
-		else
-			effects &= ~EF_QUAD;
-	}
-
-	// Quad + regen
-	if( ( effects & (EF_QUAD|EF_REGEN) ) == (EF_QUAD|EF_REGEN) )
-	{
-		if( (unsigned int)(cg.time * 0.005) & 1 )
-			effects &= ~EF_REGEN;
-		else
-			effects &= ~EF_QUAD;
-	}
-
-	// Shell + regen
-	if( ( effects & (EF_SHELL|EF_REGEN) ) == (EF_SHELL|EF_REGEN) )
-	{
-		if( (unsigned int)(cg.time * 0.005) & 1 )
-			effects &= ~EF_REGEN;
-		else
-			effects &= ~EF_SHELL;
-	}
-
-	// Shell + quad
-	if( ( effects & (EF_SHELL|EF_QUAD) ) == (EF_SHELL|EF_QUAD) )
-	{
-		if( (unsigned int)(cg.time * 0.005) & 1 )
-			effects &= ~EF_REGEN;
-		else
-			effects &= ~EF_QUAD;
-	}
-
-	if( effects & EF_GODMODE )
-		Vector4Set( RGBA, 255, 255, 255, a );
-	else if( effects & EF_QUAD )
-		Vector4Set( RGBA, 255, 255, 0, a );
-	else if( effects & EF_SHELL )
-		Vector4Set( RGBA, 125, 200, 255, a );
-	else if( effects & EF_REGEN )
-		Vector4Set( RGBA, 255, 0, 0, a );
-	else
-		Vector4Set( RGBA, ( uint8_t )r, ( uint8_t )g, ( uint8_t )b, ( uint8_t )a );
 }
 
 /*
@@ -1029,22 +875,6 @@ void CG_UpdatePlayerModelEnt( centity_t *cent )
 	CG_PModelForCentity( cent, &pmodel->pmodelinfo, &pmodel->skin );
 
 	CG_PlayerColorForEntity( cent->current.number, cent->ent.shaderRGBA );
-
-	// outline color
-	CG_SetOutlineColor( cent->outlineColor, cent->ent.shaderRGBA );
-
-	if( cg_raceGhosts->integer && !ISVIEWERENTITY( cent->current.number ) && GS_RaceGametype() )
-	{
-		cent->effects &= ~EF_OUTLINE;
-		cent->effects |= EF_RACEGHOST;
-	}
-	else
-	{
-		if( cg_outlinePlayers->integer )
-			cent->effects |= EF_OUTLINE; // add EF_OUTLINE to players
-		else
-			cent->effects &= ~EF_OUTLINE;
-	}
 
 	// fallback
 	if( !pmodel->pmodelinfo || !pmodel->skin ) {
@@ -1302,7 +1132,6 @@ void CG_AddPModel( centity_t *cent )
 
 	if( !( cent->effects & EF_RACEGHOST ) )
 	{
-		CG_AddCentityOutLineEffect( cent );
 		CG_AddEntityToScene( &cent->ent );
 	}
 

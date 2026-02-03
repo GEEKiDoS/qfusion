@@ -118,7 +118,6 @@ typedef struct
 
 	vec3_t teleportedTo;
 	vec3_t teleportedFrom;
-	byte_vec4_t outlineColor;
 
 	// used for client side animation of player models
 	bool pendingAnimationsUpdate;
@@ -660,9 +659,6 @@ void CG_GetEntitySpatilization( int entNum, vec3_t origin, vec3_t velocity );
 void CG_LerpEntities( void );
 void CG_LerpGenericEnt( centity_t *cent );
 
-void CG_SetOutlineColor( byte_vec4_t outlineColor, byte_vec4_t color );
-void CG_AddColoredOutLineEffect( entity_t *ent, int effects, uint8_t r, uint8_t g, uint8_t b, uint8_t a );
-void CG_AddCentityOutLineEffect( centity_t *cent );
 void CG_AddItemGhostEffect( centity_t *cent );
 
 void CG_AddFlagModelOnTag( centity_t *cent, byte_vec4_t teamcolor, const char *tagname );
@@ -908,9 +904,6 @@ extern cvar_t *cg_bloodTrailAlpha;
 extern cvar_t *cg_cartoonEffects;
 
 extern cvar_t *cg_gibs;
-extern cvar_t *cg_outlineModels;
-extern cvar_t *cg_outlineWorld;
-extern cvar_t *cg_outlinePlayers;
 
 extern cvar_t *cg_drawEntityBoxes;
 extern cvar_t *cg_fov;
@@ -1166,11 +1159,9 @@ void CG_HighVelImpactPuffParticles( const vec3_t org, const vec3_t dir, int coun
 //
 // cg_test.c - debug only
 //
-#ifndef PUBLIC_BUILD
 void CG_DrawTestLine( vec3_t start, vec3_t end );
 void CG_DrawTestBox( vec3_t origin, vec3_t mins, vec3_t maxs, vec3_t angles );
 void CG_AddTest( void );
-#endif
 
 //
 //	cg_vweap.c - client weapon

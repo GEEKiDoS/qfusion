@@ -2021,7 +2021,7 @@ void R_ScreenShot( const char *filename, int x, int y, int width, int height,
 	}
 }
 
-//=======================================================
+//======================================================= 
 
 /*
 * R_InitNoTexture
@@ -2355,7 +2355,10 @@ image_t *R_GetPortalTexture( int viewportWidth, int viewportHeight,
 		return NULL;
 	}
 
-	int fbo = RFB_RegisterObject( viewportWidth, viewportHeight, false, ( flags & IT_DEPTHRB ) != 0, ( flags & IT_STENCIL ) != 0 );
+	int fbo = rsh.portalTextures[id] ? 
+		rsh.portalTextures[id]->fbo :
+		RFB_RegisterObject( viewportWidth, viewportHeight, false, ( flags & IT_DEPTHRB ) != 0, ( flags & IT_STENCIL ) != 0 );
+
 	R_InitViewportTexture( &rsh.portalTextures[id], "r_portaltexture", id, 
 		viewportWidth, viewportHeight, r_portalmaps_maxtexsize->integer, 
 		IT_SPECIAL|IT_FRAMEBUFFER|IT_DEPTHRB|flags, IMAGE_TAG_GENERIC,
@@ -2388,10 +2391,13 @@ image_t *R_GetShadowmapTexture( int id, int viewportWidth, int viewportHeight, i
 		samples = 3;
 	}
 
-	int fbo = RFB_RegisterObject( viewportWidth, viewportHeight, true, ( flags & IT_DEPTHRB ) != 0, ( flags & IT_STENCIL ) != 0 );
+	int fbo = rsh.shadowmapTextures[id] ? 
+		rsh.shadowmapTextures[id]->fbo : 
+		RFB_RegisterObject( viewportWidth, viewportHeight, true, ( flags & IT_DEPTHRB ) != 0, ( flags & IT_STENCIL ) != 0 );
+
 	R_InitViewportTexture( &rsh.shadowmapTextures[id], "r_shadowmap", id, 
 		viewportWidth, viewportHeight, r_shadows_maxtexsize->integer, 
-		IT_SPECIAL|IT_FRAMEBUFFER|IT_DEPTHCOMPARE|flags, IMAGE_TAG_GENERIC, samples, FBO_TEXTURE_COLOR, fbo );
+		IT_SPECIAL|IT_FRAMEBUFFER|IT_DEPTHCOMPARE|flags, IMAGE_TAG_GENERIC, samples, FBO_TEXTURE_DEPTH, fbo );
 
 	return rsh.shadowmapTextures[id];
 }

@@ -37,7 +37,7 @@ typedef struct
 {
 	unsigned int numBones;
 	dualquat_t dualQuats[MAX_GLSL_UNIFORM_BONES];
-	dualquat_t prevDualQuats[MAX_GLSL_UNIFORM_BONES]; // 上一帧的骨骼对偶四元数
+	dualquat_t prevDualQuats[MAX_GLSL_UNIFORM_BONES];
 	unsigned int maxWeights;
 } rbBonesData_t;
 
@@ -114,11 +114,13 @@ typedef struct r_backend_s
 	mat4_t projectionMatrix;
 	mat4_t modelviewProjectionMatrix;
 	
-	// 上一帧矩阵（用于运动向量）
 	mat4_t lastCameraMatrix; 
+	mat4_t lastProjectionMatrix; 
 	mat4_t lastObjectMatrix; 
 	mat4_t lastModelViewMatrix;
 	mat4_t lastModelViewProjectionMatrix;
+
+	bool viewmodelHack;
 	
 	float zNear, zFar;
 
@@ -178,7 +180,6 @@ typedef struct r_backend_s
 	const superLightStyle_t *superLightStyle;
 
 	uint8_t entityColor[4];
-	uint8_t entityOutlineColor[4];
 	entity_t nullEnt;
 
 	const mfog_t *fog, *texFog, *colorFog;

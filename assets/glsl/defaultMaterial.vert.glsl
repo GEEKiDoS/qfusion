@@ -3,6 +3,7 @@
 #include "include/attributes.glsl"
 #include "include/rgbgen.glsl"
 #include_if(APPLY_FOG) "include/fog.glsl"
+#include "include/motion_vector.glsl"
 
 #include "include/varying_material.glsl"
 
@@ -60,8 +61,5 @@ void main()
 
 	gl_Position = u_ModelViewProjectionMatrix * Position;
 	
-#ifdef APPLY_MOTION_VECTORS
-	v_PositionClip = gl_Position;
-	v_LastPositionClip = u_LastModelViewProjectionMatrix * Position;
-#endif
+	ApplyMotionVector();
 }

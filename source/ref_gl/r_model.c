@@ -1207,10 +1207,8 @@ static void R_InitMapConfig( const char *model )
 	mapConfig.depthWritingSky = true;
 	mapConfig.forceClear = false;
 	mapConfig.lightingIntensity = 0;
-	mapConfig.forceWorldOutlines = false;
 
 	VectorClear( mapConfig.ambient );
-	VectorClear( mapConfig.outlineColor );
 
 	if( r_lighting_packlightmaps->integer )
 	{

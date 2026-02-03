@@ -4,6 +4,7 @@
 #include_if(NUM_DLIGHTS) "include/dlights.glsl"
 #include_if(APPLY_FOG) "include/fog.glsl"
 #include_if(APPLY_GREYSCALE) "include/greyscale.glsl"
+#include "include/motion_vector.glsl"
 
 #include "include/varying_q3a.glsl"
 
@@ -110,11 +111,5 @@ void main(void)
 #endif
 
 	qf_FragColor = vec4(color);
-
-#ifdef APPLY_MOTION_VECTORS
-	vec2 motionVector = (v_PositionClip.xy / v_PositionClip.w) - (v_LastPositionClip.xy / v_LastPositionClip.w);
-	motionVector *= 10;
-	qf_FragMotionVector.rg = motionVector * 0.5 + 0.5;
-	qf_FragMotionVector.b = length(motionVector);
-#endif
+	ApplyMotionVector();
 }

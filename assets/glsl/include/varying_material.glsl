@@ -18,8 +18,3 @@ qf_varying vec3 v_EyeVector;
 #endif
 
 qf_varying mat3 v_StrMatrix; // directions of S/T/R texcoords (tangent, binormal, normal)
-
-#ifdef APPLY_MOTION_VECTORS
-qf_varying vec4 v_PositionClip;
-qf_varying vec4 v_LastPositionClip;
-#endif

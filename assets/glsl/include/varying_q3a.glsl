@@ -38,7 +38,3 @@ qf_varying vec2 v_FogCoord;
 qf_varying float v_Depth;
 #endif
 
-#ifdef APPLY_MOTION_VECTORS
-qf_varying vec4 v_PositionClip;
-qf_varying vec4 v_LastPositionClip;
-#endif

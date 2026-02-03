@@ -160,7 +160,7 @@ void CG_DrawHUDField( int x, int y, int align, float *color, int size, int width
 /*
 * CG_DrawModel
 */
-static void CG_DrawModel( int x, int y, int align, int w, int h, struct model_s *model, struct shader_s *shader, vec3_t origin, vec3_t angles, bool outline )
+static void CG_DrawModel( int x, int y, int align, int w, int h, struct model_s *model, struct shader_s *shader, vec3_t origin, vec3_t angles )
 {
 	refdef_t refdef;
 	entity_t entity;
@@ -195,11 +195,6 @@ static void CG_DrawModel( int x, int y, int align, int w, int h, struct model_s 
 	VectorCopy( origin, entity.origin );
 	VectorCopy( entity.origin, entity.origin2 );
 	AnglesToAxis( angles, entity.axis );
-	if( outline )
-	{
-		entity.outlineHeight = DEFAULT_OUTLINE_HEIGHT;
-		Vector4Set( entity.outlineRGBA, 0, 0, 0, 255 );
-	}
 
 	RF_ClearScene();
 	CG_SetBoneposesForTemporaryEntity( &entity );
@@ -224,7 +219,7 @@ void CG_DrawHUDModel( int x, int y, int align, int w, int h, struct model_s *mod
 	origin[2] = -0.5 * ( mins[2] + maxs[2] );
 	VectorSet( angles, 0, anglemod( yawspeed * ( cg.time & 2047 ) * ( 360.0 / 2048.0 ) ), 0 );
 
-	CG_DrawModel( x, y, align, w, h, model, shader, origin, angles, cg_outlineModels->integer ? true : false );
+	CG_DrawModel( x, y, align, w, h, model, shader, origin, angles );
 }
 
 /*

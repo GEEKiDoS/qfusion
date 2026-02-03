@@ -32,7 +32,6 @@ enum
 {
 	BUILTIN_GLSLPASS_FOG,
 	BUILTIN_GLSLPASS_SHADOWMAP,
-	BUILTIN_GLSLPASS_OUTLINE,
 	BUILTIN_GLSLPASS_SKYBOX,
 	MAX_BUILTIN_GLSLPASSES
 };
@@ -59,7 +58,6 @@ static void RB_RenderMeshGLSL_Material( const shaderpass_t *pass, r_glslfeat_t p
 static void RB_RenderMeshGLSL_Distortion( const shaderpass_t *pass, r_glslfeat_t programFeatures );
 static void RB_RenderMeshGLSL_RGBShadow( const shaderpass_t *pass, r_glslfeat_t programFeatures );
 static void RB_RenderMeshGLSL_Shadowmap( const shaderpass_t *pass, r_glslfeat_t programFeatures );
-static void RB_RenderMeshGLSL_Outline( const shaderpass_t *pass, r_glslfeat_t programFeatures );
 static void RB_RenderMeshGLSL_Q3AShader( const shaderpass_t *pass, r_glslfeat_t programFeatures );
 static void RB_RenderMeshGLSL_Celshade( const shaderpass_t *pass, r_glslfeat_t programFeatures );
 static void RB_RenderMeshGLSL_Fog( const shaderpass_t *pass, r_glslfeat_t programFeatures );
@@ -93,17 +91,9 @@ static void RB_InitBuiltinPasses( void )
 	pass->alphagen.type = ALPHA_GEN_IDENTITY;
 	pass->program_type = GLSL_PROGRAM_TYPE_SHADOWMAP;
 
-	// outlines
-	pass = &r_GLSLpasses[BUILTIN_GLSLPASS_OUTLINE];
-	pass->flags = GLSTATE_DEPTHWRITE;
-	pass->rgbgen.type = RGB_GEN_OUTLINE;
-	pass->alphagen.type = ALPHA_GEN_OUTLINE;
-	pass->tcgen = TC_GEN_NONE;
-	pass->program_type = GLSL_PROGRAM_TYPE_OUTLINE;
-
 	// skybox
 	pass = &r_GLSLpasses[BUILTIN_GLSLPASS_SKYBOX];
-	pass->program_type = GLSL_PROGRAM_TYPE_Q3A_SHADER;
+	pass->program_type = GLSL_PROGRAM_TYPE_SKYBOX;
 	pass->tcgen = TC_GEN_BASE;
 	pass->rgbgen.type = RGB_GEN_IDENTITY;
 	pass->alphagen.type = ALPHA_GEN_IDENTITY;
@@ -450,11 +440,6 @@ void RB_GetShaderpassColor( const shaderpass_t *pass, byte_vec4_t rgba_ )
 		a = v[1] * temp; rgba[1] = ( int )( a * 255.0f );
 		a = v[2] * temp; rgba[2] = ( int )( a * 255.0f );
 		break;
-	case RGB_GEN_OUTLINE:
-		rgba[0] = rb.entityOutlineColor[0];
-		rgba[1] = rb.entityOutlineColor[1];
-		rgba[2] = rb.entityOutlineColor[2];
-		break;
 	case RGB_GEN_ONE_MINUS_ENTITY:
 		rgba[0] = 255 - rb.entityColor[0];
 		rgba[1] = 255 - rb.entityColor[1];
@@ -511,8 +496,6 @@ void RB_GetShaderpassColor( const shaderpass_t *pass, byte_vec4_t rgba_ )
 	case ALPHA_GEN_ENTITY:
 		rgba[3] = rb.entityColor[3];
 		break;
-	case ALPHA_GEN_OUTLINE:
-		rgba[3] = rb.entityOutlineColor[3];
 	default:
 		break;
 	}
@@ -768,7 +751,7 @@ static void RB_UpdateCommonUniforms( int program, const shaderpass_t *pass, mat4
 
 	RP_UpdateViewUniforms( program,
 		rb.modelviewMatrix, rb.modelviewProjectionMatrix,
-		rb.lastModelViewProjectionMatrix,
+		rb.viewmodelHack ? rb.modelviewProjectionMatrix : rb.lastModelViewProjectionMatrix,
 		rb.cameraOrigin, rb.cameraAxis, 
 		rb.renderFlags & RF_MIRRORVIEW ? -1 : 1,
 		rb.gl.viewport,
@@ -919,8 +902,6 @@ static void RB_RenderMeshGLSL_Material( const shaderpass_t *pass, r_glslfeat_t p
 	if( rb.currentDlightBits ) {
 		programFeatures |= RB_DlightbitsToProgramFeatures( rb.currentDlightBits );
 	}
-
-	programFeatures |= GLSL_SHADER_COMMON_MOTION_VECTORS;
 
 	Matrix4_Identity( texMatrix );
 
@@ -1367,55 +1348,6 @@ static void RB_RenderMeshGLSL_Shadowmap( const shaderpass_t *pass, r_glslfeat_t 
 }
 
 /*
-* RB_RenderMeshGLSL_Outline
-*/
-static void RB_RenderMeshGLSL_Outline( const shaderpass_t *pass, r_glslfeat_t programFeatures )
-{
-	int faceCull;
-	int program;
-	mat4_t texMatrix;
-
-	if( rb.currentModelType == mod_brush ) {
-		programFeatures |= GLSL_SHADER_OUTLINE_OUTLINES_CUTOFF;
-	}
-
-	programFeatures |= RB_RGBAlphaGenToProgramFeatures( &pass->rgbgen, &pass->alphagen );
-
-	programFeatures |= RB_FogProgramFeatures( pass, rb.fog );
-
-	// update uniforcms
-	program = RB_RegisterProgram( GLSL_PROGRAM_TYPE_OUTLINE, NULL,
-		rb.currentShader->deformsKey, rb.currentShader->deforms, rb.currentShader->numdeforms, programFeatures );
-	if( !RB_BindProgram( program ) )
-		return;
-
-	Matrix4_Identity( texMatrix );
-
-	faceCull = rb.gl.faceCull;
-	RB_Cull( GL_BACK );
-
-	// set shaderpass state (blending, depthwrite, etc)
-	RB_SetShaderpassState( pass->flags );
-
-	RB_UpdateCommonUniforms( program, pass, texMatrix );
-
-	RP_UpdateOutlineUniforms( program, rb.currentEntity->outlineHeight * r_outlines_scale->value );
-
-	if( programFeatures & GLSL_SHADER_COMMON_FOG ) {
-		RB_UpdateFogUniforms( program, rb.fog );
-	}
-
-	// submit animation data
-	if( programFeatures & GLSL_SHADER_COMMON_BONE_TRANSFORMS ) {
-		RP_UpdateBonesUniforms( program, rb.bonesData.numBones, rb.bonesData.dualQuats, rb.bonesData.prevDualQuats );
-	}
-
-	RB_DrawElementsReal( &rb.drawElements );
-
-	RB_Cull( faceCull );
-}
-
-/*
 * RB_TcGenToProgramFeatures
 */
 r_glslfeat_t RB_TcGenToProgramFeatures( int tcgen, vec_t *tcgenVec, mat4_t texMatrix, mat4_t genVectors )
@@ -1559,10 +1491,6 @@ static void RB_RenderMeshGLSL_Q3AShader( const shaderpass_t *pass, r_glslfeat_t 
 		programFeatures |= GLSL_SHADER_Q3_ALPHA_MASK;
 	}
 
-	if( r_motionblur && r_motionblur->integer ) {
-		programFeatures |= GLSL_SHADER_COMMON_MOTION_VECTORS;
-	}
-
 	RB_BindImage( 0, image );
 
 	// convert rgbgen and alphagen to GLSL feature defines
@@ -1678,7 +1606,6 @@ static void RB_RenderMeshGLSL_Celshade( const shaderpass_t *pass, r_glslfeat_t p
 
 	// convert rgbgen and alphagen to GLSL feature defines
 	programFeatures |= RB_RGBAlphaGenToProgramFeatures( &pass->rgbgen, &pass->alphagen );
-	programFeatures |= GLSL_SHADER_COMMON_MOTION_VECTORS;
 
 	// set shaderpass state (blending, depthwrite, etc)
 	RB_SetShaderpassState( pass->flags );
@@ -1771,7 +1698,6 @@ static void RB_RenderMeshGLSL_Fog( const shaderpass_t *pass, r_glslfeat_t progra
 */
 static void RB_RenderMeshGLSL_FXAA( const shaderpass_t *pass, r_glslfeat_t programFeatures )
 {
-	bool fxaa3 = false;
 	int program;
 	const image_t *image = pass->images[0];
 	mat4_t texMatrix;
@@ -1782,12 +1708,6 @@ static void RB_RenderMeshGLSL_FXAA( const shaderpass_t *pass, r_glslfeat_t progr
 	Matrix4_Identity( texMatrix );
 
 	RB_BindImage( 0, image );
-
-	if( glConfig.ext.gpu_shader5 )
-		fxaa3 = true;
-
-	if( fxaa3 )
-		programFeatures |= GLSL_SHADER_FXAA_FXAA3;
 
 	// update uniforms
 	program = RB_RegisterProgram( GLSL_PROGRAM_TYPE_FXAA, NULL,
@@ -1915,9 +1835,6 @@ void RB_RenderMeshGLSLProgrammed( const shaderpass_t *pass, int programType )
 	case GLSL_PROGRAM_TYPE_SHADOWMAP:
 		RB_RenderMeshGLSL_Shadowmap( pass, features );
 		break;
-	case GLSL_PROGRAM_TYPE_OUTLINE:
-		RB_RenderMeshGLSL_Outline( pass, features );
-		break;
 	case GLSL_PROGRAM_TYPE_Q3A_SHADER:
 		RB_RenderMeshGLSL_Q3AShader( pass, features );
 		break;
@@ -1958,9 +1875,6 @@ static void RB_UpdateVertexAttribs( void )
 	}
 	if( rb.bonesData.numBones ) {
 		vattribs |= VATTRIB_BONES_BITS;
-	}
-	if( rb.currentEntity->outlineHeight ) {
-		vattribs |= VATTRIB_NORMAL_BIT;
 	}
 	if( DRAWFLAT() ) {
 		vattribs |= VATTRIB_NORMAL_BIT;
@@ -2008,7 +1922,6 @@ void RB_BindShader( const entity_t *e, const shader_t *shader, const mfog_t *fog
 		rb.depthEqual = false;
 	} else {
 		Vector4Copy( rb.currentEntity->shaderRGBA, rb.entityColor );
-		Vector4Copy( rb.currentEntity->outlineColor, rb.entityOutlineColor );
 		if( rb.currentEntity->shaderTime > rb.time )
 			rb.currentShaderTime = 0;
 		else
@@ -2391,18 +2304,10 @@ void RB_DrawOutlinedElements( void )
 void RB_DrawShadedElements( void )
 {
 	unsigned i;
-	bool addGLSLOutline = false;
 	shaderpass_t *pass;
 
 	if( RB_CleanSinglePass() ) {
 		return;
-	}
-
-	if( ENTITY_OUTLINE( rb.currentEntity ) && !(rb.renderFlags & RF_CLIPPLANE)
-		&& ( rb.currentShader->sort == SHADER_SORT_OPAQUE ) && ( rb.currentShader->flags & SHADER_CULL_FRONT )
-		&& !( rb.renderFlags & RF_SHADOWMAPVIEW ) )
-	{
-		addGLSLOutline = true;
 	}
 
 	RB_SetShaderState();
@@ -2413,6 +2318,12 @@ void RB_DrawShadedElements( void )
 			continue;
 		if( pass->flags & SHADERPASS_LIGHTMAP )
 			continue;
+
+		// don't write to motion vector & normal buffer if it's not writing to depth buffer
+		if( pass->program_type != GLSL_PROGRAM_TYPE_SKYBOX && !( pass->flags & GLSTATE_DEPTHWRITE ) ) {
+			pass->flags |= GLSTATE_NO_MOTIONWRITE | GLSTATE_NO_NORMALWRITE;
+		}
+
 		RB_RenderPass( pass );
 	}
 
@@ -2420,10 +2331,6 @@ void RB_DrawShadedElements( void )
 	if( rb.currentShadowBits && ( rb.currentShader->sort >= SHADER_SORT_OPAQUE )
 		&& ( rb.currentShader->sort <= SHADER_SORT_ALPHATEST ) )
 		RB_RenderPass( &r_GLSLpasses[BUILTIN_GLSLPASS_SHADOWMAP] );
-
-	// outlines
-	if( addGLSLOutline )
-		RB_RenderPass( &r_GLSLpasses[BUILTIN_GLSLPASS_OUTLINE] );
 
 	// fog
 	if( rb.texFog && rb.texFog->shader )

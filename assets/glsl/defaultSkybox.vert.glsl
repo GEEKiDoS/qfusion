@@ -2,6 +2,7 @@
 #include "include/uniforms.glsl"
 #include "include/attributes.glsl"
 #include "include/rgbgen.glsl"
+#include "include/motion_vector.glsl"
 
 qf_varying vec2 v_TexCoord;
 
@@ -16,4 +17,6 @@ void main(void)
 	qf_FrontColor = a_Color;
 	v_TexCoord = TexCoord;
 	gl_Position = u_ModelViewProjectionMatrix * Position;
+
+	ApplyMotionVector();
 }

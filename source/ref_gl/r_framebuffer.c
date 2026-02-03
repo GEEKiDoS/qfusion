@@ -246,8 +246,8 @@ void RFB_SetupMRT( int object )
 		}
 	}
 
-	assert( numColorAttachments > 0 );
-	qglDrawBuffers( numColorAttachments, drawBuffers );
+	if( numColorAttachments > 0 )
+		qglDrawBuffers( numColorAttachments, drawBuffers );
 }
 
 /*

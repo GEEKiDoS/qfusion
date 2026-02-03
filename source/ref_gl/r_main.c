@@ -139,6 +139,8 @@ void R_TransformForEntity( const entity_t *e )
 	} else {
 		RB_LoadObjectMatrix( rn.objectMatrix, rn.objectMatrix );
 	}
+
+	RB_ViewmodelHack( e->isViewModel );
 }
 
 /*
@@ -503,7 +505,7 @@ void R_Set2DMode( bool enable )
 		RB_Scissor( 0, 0, width, height );
 		RB_Viewport( 0, 0, width, height );
 
-		RB_LoadProjectionMatrix( rn.projectionMatrix );
+		RB_LoadProjectionMatrix( rn.projectionMatrix, rn.projectionMatrix );
 		RB_LoadCameraMatrix( mat4x4_identity, mat4x4_identity );
 		RB_LoadObjectMatrix( mat4x4_identity, mat4x4_identity );
 
@@ -1081,7 +1083,7 @@ static void R_SetupGL( void )
 
 	RB_SetRenderFlags( rn.renderFlags );
 
-	RB_LoadProjectionMatrix( rn.projectionMatrix );
+	RB_LoadProjectionMatrix( rn.projectionMatrix, rn.lastProjectionMatrix );
 
 	RB_LoadCameraMatrix( rn.cameraMatrix, rn.lastCameraMatrix );
 
@@ -1123,8 +1125,6 @@ static void R_DrawEntities( void )
 			e = rsc.bmodelEntities[i];
 			if( !r_lerpmodels->integer )
 				e->backlerp = 0;
-			e->outlineHeight = rsc.worldent->outlineHeight;
-			Vector4Copy( rsc.worldent->outlineRGBA, e->outlineColor );
 			R_AddBrushModelToDrawList( e );
 		}
 		return;
@@ -1155,8 +1155,6 @@ static void R_DrawEntities( void )
 				culled = ! R_AddSkeletalModelToDrawList( e );
 				break;
 			case mod_brush:
-				e->outlineHeight = rsc.worldent->outlineHeight;
-				Vector4Copy( rsc.worldent->outlineRGBA, e->outlineColor );
 				culled = ! R_AddBrushModelToDrawList( e );
 			default:
 				break;
@@ -1211,9 +1209,6 @@ void R_RenderView( const refdef_t *fd )
 
 	rn.refdef = *fd;
 	rn.numVisSurfaces = 0;
-
-	// backup last shits
-	Matrix4_Copy( rn.cameraMatrix, rn.lastCameraMatrix );
 
 	// load view matrices with default far clip value
 	R_SetupViewMatrices();
@@ -1331,6 +1326,13 @@ void R_RenderView( const refdef_t *fd )
 	R_TransformForWorld();
 
 	R_EndGL();
+
+	// backup last shits
+	// but only main view
+	if( !( rn.renderFlags & ( RF_MIRRORVIEW | RF_PORTALVIEW | RF_ENVVIEW | RF_SHADOWMAPVIEW ) ) ) {
+		Matrix4_Copy( rn.cameraMatrix, rn.lastCameraMatrix );
+		Matrix4_Copy( rn.projectionMatrix, rn.lastProjectionMatrix );
+	}
 }
 
 #define REFINST_STACK_SIZE	64

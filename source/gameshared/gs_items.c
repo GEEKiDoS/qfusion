@@ -102,7 +102,7 @@ gsitem_t	itemdefs[] =
 		PATH_MACHINEGUN_ICON,
 		PATH_MACHINEGUN_SIMPLEITEM,
 		S_PICKUP_WEAPON,
-		EF_ROTATE_AND_BOB|EF_OUTLINE,
+		EF_ROTATE_AND_BOB,
 
 		"Machinegun", "MG", S_COLOR_GREY,
 		1,
@@ -124,7 +124,7 @@ gsitem_t	itemdefs[] =
 		PATH_RIOTGUN_ICON,
 		PATH_RIOTGUN_SIMPLEITEM,
 		S_PICKUP_WEAPON,
-		EF_ROTATE_AND_BOB|EF_OUTLINE,
+		EF_ROTATE_AND_BOB,
 
 		"Riotgun", "RG", S_COLOR_ORANGE,
 		1,
@@ -146,7 +146,7 @@ gsitem_t	itemdefs[] =
 		PATH_GRENADELAUNCHER_ICON,
 		PATH_GRENADELAUNCHER_SIMPLEITEM,
 		S_PICKUP_WEAPON,
-		EF_ROTATE_AND_BOB|EF_OUTLINE,
+		EF_ROTATE_AND_BOB,
 
 		"Grenade Launcher", "GL", S_COLOR_BLUE,
 		1,
@@ -169,7 +169,7 @@ gsitem_t	itemdefs[] =
 		PATH_ROCKETLAUNCHER_ICON,
 		PATH_ROCKETLAUNCHER_SIMPLEITEM,
 		S_PICKUP_WEAPON,
-		EF_ROTATE_AND_BOB|EF_OUTLINE,
+		EF_ROTATE_AND_BOB,
 
 		"Rocket Launcher", "RL", S_COLOR_RED,
 		1,
@@ -193,7 +193,7 @@ gsitem_t	itemdefs[] =
 		PATH_PLASMAGUN_ICON,
 		PATH_PLASMAGUN_SIMPLEITEM,
 		S_PICKUP_WEAPON,
-		EF_ROTATE_AND_BOB|EF_OUTLINE,
+		EF_ROTATE_AND_BOB,
 
 		"Plasmagun", "PG", S_COLOR_GREEN,
 		1,
@@ -217,7 +217,7 @@ gsitem_t	itemdefs[] =
 		PATH_LASERGUN_ICON,
 		PATH_LASERGUN_SIMPLEITEM,
 		S_PICKUP_WEAPON,
-		EF_ROTATE_AND_BOB|EF_OUTLINE,
+		EF_ROTATE_AND_BOB,
 
 		"Lasergun", "LG", S_COLOR_YELLOW,
 		1,
@@ -244,7 +244,7 @@ gsitem_t	itemdefs[] =
 		PATH_ELECTROBOLT_ICON,
 		PATH_ELECTROBOLT_SIMPLEITEM,
 		S_PICKUP_WEAPON,
-		EF_ROTATE_AND_BOB|EF_OUTLINE,
+		EF_ROTATE_AND_BOB,
 
 		"Electrobolt", "EB", S_COLOR_CYAN,
 		1,
@@ -268,7 +268,7 @@ gsitem_t	itemdefs[] =
 		PATH_INSTAGUN_ICON,
 		PATH_INSTAGUN_SIMPLEITEM,
 		S_PICKUP_WEAPON,
-		EF_ROTATE_AND_BOB|EF_OUTLINE,
+		EF_ROTATE_AND_BOB,
 
 		"Instagun", "IG", S_COLOR_MAGENTA,
 		1,
@@ -297,7 +297,7 @@ gsitem_t	itemdefs[] =
 		PATH_GUNBLADE_AMMO_ICON,
 		PATH_GUNBLADE_AMMO_ICON,
 		S_PICKUP_AMMO,
-		EF_ROTATE_AND_BOB|EF_OUTLINE|EF_AMMOBOX,
+		EF_ROTATE_AND_BOB|EF_AMMOBOX,
 
 		"Cells", "cells", S_COLOR_YELLOW,
 		0, // actual value comes from weapondefs instead
@@ -319,7 +319,7 @@ gsitem_t	itemdefs[] =
 		PATH_MACHINEGUN_AMMO_ICON,
 		PATH_MACHINEGUN_AMMO_ICON,
 		S_PICKUP_AMMO,
-		EF_ROTATE_AND_BOB|EF_OUTLINE|EF_AMMOBOX,
+		EF_ROTATE_AND_BOB|EF_AMMOBOX,
 
 		"Bullets", "bullets", S_COLOR_GREY,
 		0, // actual value comes from weapondefs instead
@@ -341,7 +341,7 @@ gsitem_t	itemdefs[] =
 		PATH_RIOTGUN_AMMO_ICON,
 		PATH_RIOTGUN_AMMO_ICON,
 		S_PICKUP_AMMO,
-		EF_ROTATE_AND_BOB|EF_OUTLINE|EF_AMMOBOX,
+		EF_ROTATE_AND_BOB|EF_AMMOBOX,
 
 		"Shells", "shells", S_COLOR_ORANGE,
 		0, // actual value comes from weapondefs instead
@@ -363,7 +363,7 @@ gsitem_t	itemdefs[] =
 		PATH_GRENADELAUNCHER_AMMO_ICON,
 		PATH_GRENADELAUNCHER_AMMO_ICON,
 		S_PICKUP_AMMO,
-		EF_ROTATE_AND_BOB|EF_OUTLINE|EF_AMMOBOX,
+		EF_ROTATE_AND_BOB|EF_AMMOBOX,
 
 		"Grenades", "grens", S_COLOR_BLUE,
 		0, // actual value comes from weapondefs instead
@@ -385,7 +385,7 @@ gsitem_t	itemdefs[] =
 		PATH_ROCKETLAUNCHER_AMMO_ICON,
 		PATH_ROCKETLAUNCHER_AMMO_ICON,
 		S_PICKUP_AMMO,
-		EF_ROTATE_AND_BOB|EF_OUTLINE|EF_AMMOBOX,
+		EF_ROTATE_AND_BOB|EF_AMMOBOX,
 
 		"Rockets", "rockets", S_COLOR_RED,
 		0, // actual value comes from weapondefs instead
@@ -407,7 +407,7 @@ gsitem_t	itemdefs[] =
 		PATH_PLASMAGUN_AMMO_ICON,
 		PATH_PLASMAGUN_AMMO_ICON,
 		S_PICKUP_AMMO,
-		EF_ROTATE_AND_BOB|EF_OUTLINE|EF_AMMOBOX,
+		EF_ROTATE_AND_BOB|EF_AMMOBOX,
 
 		"Plasma", "plasma", S_COLOR_GREEN,
 		0, // actual value comes from weapondefs instead
@@ -429,7 +429,7 @@ gsitem_t	itemdefs[] =
 		PATH_LASERGUN_AMMO_ICON,
 		PATH_LASERGUN_AMMO_ICON,
 		S_PICKUP_AMMO,
-		EF_ROTATE_AND_BOB|EF_OUTLINE|EF_AMMOBOX,
+		EF_ROTATE_AND_BOB|EF_AMMOBOX,
 
 		"Lasers", "lasers", S_COLOR_YELLOW,
 		0, // actual value comes from weapondefs instead
@@ -451,7 +451,7 @@ gsitem_t	itemdefs[] =
 		PATH_ELECTROBOLT_AMMO_ICON,
 		PATH_ELECTROBOLT_AMMO_ICON,
 		S_PICKUP_AMMO,
-		EF_ROTATE_AND_BOB|EF_OUTLINE|EF_AMMOBOX,
+		EF_ROTATE_AND_BOB|EF_AMMOBOX,
 
 		"Bolts", "bolts", S_COLOR_CYAN,
 		0, // actual value comes from weapondefs instead
@@ -472,7 +472,7 @@ gsitem_t	itemdefs[] =
 		PATH_INSTAGUN_AMMO_ICON,
 		PATH_INSTAGUN_AMMO_ICON,
 		S_PICKUP_AMMO,
-		EF_ROTATE_AND_BOB|EF_OUTLINE|EF_AMMOBOX,
+		EF_ROTATE_AND_BOB|EF_AMMOBOX,
 
 		"Instas", "instas", S_COLOR_CYAN,
 		0, // actual value comes from weapondefs instead
@@ -520,7 +520,7 @@ gsitem_t	itemdefs[] =
 		PATH_MACHINEGUN_AMMO_ICON,
 		PATH_MACHINEGUN_AMMO_ICON,
 		S_PICKUP_AMMO,
-		EF_ROTATE_AND_BOB|EF_OUTLINE|EF_AMMOBOX,
+		EF_ROTATE_AND_BOB|EF_AMMOBOX,
 
 		"Weak bullets", "11mm", S_COLOR_GREY,
 		0, // actual value comes from weapondefs instead
@@ -699,7 +699,7 @@ gsitem_t	itemdefs[] =
 		PATH_GA_ICON,
 		PATH_GA_SIMPLEITEM,
 		S_PICKUP_ARMOR_GA,
-		EF_ROTATE_AND_BOB|EF_OUTLINE,
+		EF_ROTATE_AND_BOB,
 
 		"Green Armor", "GA", S_COLOR_GREEN,
 		ARMOR_GA_PICKUP,
@@ -721,7 +721,7 @@ gsitem_t	itemdefs[] =
 		PATH_YA_ICON,
 		PATH_YA_SIMPLEITEM,
 		S_PICKUP_ARMOR_YA,
-		EF_ROTATE_AND_BOB|EF_OUTLINE,
+		EF_ROTATE_AND_BOB,
 
 		"Yellow Armor", "YA", S_COLOR_YELLOW,
 		ARMOR_YA_PICKUP,
@@ -743,7 +743,7 @@ gsitem_t	itemdefs[] =
 		PATH_RA_ICON,
 		PATH_RA_SIMPLEITEM,
 		S_PICKUP_ARMOR_RA,
-		EF_ROTATE_AND_BOB|EF_OUTLINE,
+		EF_ROTATE_AND_BOB,
 
 		"Red Armor", "RA", S_COLOR_RED,
 		ARMOR_RA_PICKUP,
@@ -765,7 +765,7 @@ gsitem_t	itemdefs[] =
 		PATH_SHARD_ICON,
 		PATH_SHARD_SIMPLEITEM,
 		S_PICKUP_ARMOR_SHARD,
-		EF_ROTATE_AND_BOB|EF_OUTLINE,
+		EF_ROTATE_AND_BOB,
 
 		"Armor Shard", "shard", S_COLOR_GREEN,
 		ARMOR_SHARD_PICKUP,
@@ -905,7 +905,7 @@ gsitem_t	itemdefs[] =
 		PATH_QUAD_ICON,
 		PATH_QUAD_SIMPLEITEM,
 		S_PLAYER_QUAD_PICKUP,
-		EF_OUTLINE|EF_ROTATE_AND_BOB,
+		EF_ROTATE_AND_BOB,
 
 		"Quad Damage", "QUAD", NULL,
 		QUAD_TIME,
@@ -930,7 +930,7 @@ gsitem_t	itemdefs[] =
 		PATH_SHELL_ICON,
 		PATH_SHELL_SIMPLEITEM,
 		S_PICKUP_SHELL,
-		EF_OUTLINE|EF_ROTATE_AND_BOB,
+		EF_ROTATE_AND_BOB,
 
 		"WarShell", "Shell", NULL,
 		SHELL_TIME,
@@ -955,7 +955,7 @@ gsitem_t	itemdefs[] =
 		PATH_REGEN_ICON,
 		PATH_REGEN_SIMPLEITEM,
 		S_PICKUP_REGEN,
-		EF_OUTLINE|EF_ROTATE_AND_BOB,
+		EF_ROTATE_AND_BOB,
 
 		"Regeneration", "Regen", NULL,
 		REGEN_TIME,
@@ -979,7 +979,7 @@ gsitem_t	itemdefs[] =
 		PATH_AMMOPACK_ICON,
 		PATH_AMMOPACK_SIMPLEITEM,
 		S_PICKUP_AMMO,
-		EF_ROTATE_AND_BOB|EF_OUTLINE,
+		EF_ROTATE_AND_BOB,
 
 		"Ammo Pack Weak", "weakpack", NULL,
 		1,
@@ -1001,7 +1001,7 @@ gsitem_t	itemdefs[] =
 		PATH_AMMOPACK_ICON,
 		PATH_AMMOPACK_SIMPLEITEM,
 		S_PICKUP_AMMO,
-		EF_ROTATE_AND_BOB|EF_OUTLINE,
+		EF_ROTATE_AND_BOB,
 
 		"Ammo Pack Strong", "strongpack", NULL,
 		1,
@@ -1023,7 +1023,7 @@ gsitem_t	itemdefs[] =
 		PATH_AMMOPACK_ICON,
 		PATH_AMMOPACK_SIMPLEITEM,
 		S_PICKUP_AMMO,
-		EF_ROTATE_AND_BOB|EF_OUTLINE,
+		EF_ROTATE_AND_BOB,
 
 		"Ammo Pack", "pack", NULL,
 		1,

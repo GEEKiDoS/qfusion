@@ -646,19 +646,8 @@ static void CG_AddLinkedModel( centity_t *cent )
 	ent.lastScale = 1.0f;
 	ent.haveLastInfo = true;
 
-	CG_AddColoredOutLineEffect( &ent, cent->effects, 
-		cent->outlineColor[0], cent->outlineColor[1], cent->outlineColor[2], cent->outlineColor[3] );
 	CG_AddEntityToScene( &ent );
 	CG_AddShellEffects( &ent, cent->effects );
-}
-
-/*
-* CG_AddCentityOutLineEffect
-*/
-void CG_AddCentityOutLineEffect( centity_t *cent )
-{
-	CG_AddColoredOutLineEffect( &cent->ent, cent->effects, 
-		cent->outlineColor[0], cent->outlineColor[1], cent->outlineColor[2], cent->outlineColor[3] );
 }
 
 //==========================================================================
@@ -678,8 +667,6 @@ static void CG_UpdateGenericEnt( centity_t *cent )
 
 	// set entity color based on team
 	CG_TeamColorForEntity( cent->current.number, cent->ent.shaderRGBA );
-	if( cent->effects & EF_OUTLINE )
-		Vector4Set( cent->outlineColor, 0, 0, 0, 255 );
 
 	// set frame
 	cent->ent.frame = cent->current.frame;
@@ -857,9 +844,6 @@ static void CG_AddGenericEnt( centity_t *cent )
 	if( cent->effects & EF_TEAMCOLOR_TRANSITION )
 		CG_EntAddTeamColorTransitionEffect( cent );
 
-	// add to refresh list
-	CG_AddCentityOutLineEffect( cent );
-
 	// render effects
 	cent->ent.renderfx = cent->renderfx;
 
@@ -892,9 +876,6 @@ static void CG_AddGenericEnt( centity_t *cent )
 		if( cent->effects & EF_GHOST ) {
 			cent->ent.renderfx |= RF_ALPHAHACK|RF_GREYSCALE;
 			cent->ent.shaderRGBA[3] = 100;
-
-			// outlines don't work on transparent objects...
-			cent->ent.outlineHeight = 0;
 		}
 		else {
 			cent->ent.shaderRGBA[3] = 255;
@@ -1008,12 +989,6 @@ void CG_AddFlagModelOnTag( centity_t *cent, byte_vec4_t teamcolor, const char *t
 		VectorMA( flag.origin, 16, &flag.axis[AXIS_FORWARD], flag.origin ); // Move the flag up a bit
 	}
 
-	CG_AddColoredOutLineEffect( &flag, EF_OUTLINE,
-		(uint8_t)( teamcolor[0]*0.3 ),
-		(uint8_t)( teamcolor[1]*0.3 ),
-		(uint8_t)( teamcolor[2]*0.3 ),
-		255 );
-
 	CG_AddEntityToScene( &flag );
 
 	// add the light & energy effects
@@ -1029,7 +1004,6 @@ void CG_AddFlagModelOnTag( centity_t *cent, byte_vec4_t teamcolor, const char *t
 		flag.frame = flag.oldframe = 0;
 		flag.radius = 32.0f;
 		flag.customShader = CG_MediaShader( cgs.media.shaderFlagFlare );
-		flag.outlineHeight = 0;
 
 		CG_AddEntityToScene( &flag );
 	}
@@ -1056,8 +1030,6 @@ static void CG_UpdateFlagBaseEnt( centity_t *cent )
 
 	// set entity color based on team
 	CG_TeamColorForEntity( cent->current.number, cent->ent.shaderRGBA );
-	if( cent->effects & EF_OUTLINE )
-		CG_SetOutlineColor( cent->outlineColor, cent->ent.shaderRGBA );
 
 	cent->ent.scale = 1.0f;
 
@@ -1108,9 +1080,6 @@ static void CG_AddFlagBaseEnt( centity_t *cent )
 		CG_LerpSkeletonPoses( cent->skel, cent->ent.frame, cent->ent.oldframe, cent->ent.boneposes, 1.0 - cent->ent.backlerp );
 		CG_TransformBoneposes( cent->skel, cent->ent.boneposes, cent->ent.boneposes );
 	}
-
-	// add to refresh list
-	CG_AddCentityOutLineEffect( cent );
 
 	CG_AddEntityToScene( &cent->ent );
 
@@ -1335,9 +1304,6 @@ static void CG_UpdateItemEnt( centity_t *cent )
 		cent->ent.rtype = RT_MODEL;
 		cent->ent.frame = cent->current.frame;
 		cent->ent.oldframe = cent->prev.frame;
-
-		if( cent->effects & EF_OUTLINE )
-			Vector4Set( cent->outlineColor, 0, 0, 0, 255 ); // black
 
 		// set up the model
 		cent->ent.model = cgs.modelDraw[cent->current.modelindex];

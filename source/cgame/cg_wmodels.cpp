@@ -409,7 +409,6 @@ static bool CG_WeaponModelUpdateRegistration( weaponinfo_t *weaponinfo, char *fi
 
 	//create a tag_projection from tag_flash, to position fire effects
 	CG_BuildProjectionOrigin( weaponinfo );
-	Vector4Set( weaponinfo->outlineColor, 0, 0, 0, 255 );
 
 	if( cg_debugWeaponModels->integer )
 		CG_Printf( "%sWEAPmodel: Loaded successful%s\n", S_COLOR_BLUE, S_COLOR_WHITE );
@@ -481,22 +480,6 @@ struct weaponinfo_s *CG_RegisterWeaponModel( char *cgs_name, int weaponTag )
 		return NULL;
 	}
 
-	// find the item for this weapon and try to assign the outline color
-	if( weaponTag )
-	{
-		gsitem_t *item = GS_FindItemByTag( weaponTag );
-		if( item )
-		{
-			if( item->color && strlen( item->color ) > 1 )
-			{
-				byte_vec4_t colorByte;
-
-				Vector4Scale( color_table[ColorIndex( item->color[1] )], 255, colorByte );
-				CG_SetOutlineColor( weaponinfo->outlineColor, colorByte );
-			}
-		}
-	}
-
 	return weaponinfo;
 }
 
@@ -525,7 +508,6 @@ struct weaponinfo_s *CG_CreateWeaponZeroModel( char *filename )
 		CG_Printf( "%sWEAPmodel: Failed to load generic weapon. Creating a fake one%s\n", S_COLOR_YELLOW, S_COLOR_WHITE );
 
 	CG_CreateHandDefaultAnimations( weaponinfo );
-	Vector4Set( weaponinfo->outlineColor, 0, 0, 0, 255 );
 	weaponinfo->inuse = true;
 
 	Q_strncpyz( weaponinfo->name, filename, sizeof( weaponinfo->name ) );
@@ -583,10 +565,9 @@ void CG_AddWeaponOnTag( entity_t *ent, orientation_t *tag, int weaponid, int eff
 	weapon.frame = 0;
 	weapon.oldframe = 0;
 	weapon.model = weaponInfo->model[WEAPON];
+	weapon.isViewModel = true;
 
 	CG_PlaceModelOnTag( &weapon, ent, tag );
-
-	CG_AddColoredOutLineEffect( &weapon, effects, 0, 0, 0, 255 );
 
 	if( !( effects & EF_RACEGHOST ) )
 		CG_AddEntityToScene( &weapon );
@@ -620,10 +601,9 @@ void CG_AddWeaponOnTag( entity_t *ent, orientation_t *tag, int weaponid, int eff
 			expansion.renderfx = ent->renderfx;
 			expansion.frame = 0;
 			expansion.oldframe = 0;
+			expansion.isViewModel = true;
 
 			CG_PlaceModelOnTag( &expansion, &weapon, tag );
-
-			CG_AddColoredOutLineEffect( &expansion, effects, 0, 0, 0, 255 );
 
 			if( !( effects & EF_RACEGHOST ) )
 				CG_AddEntityToScene( &expansion ); // skelmod
@@ -648,6 +628,7 @@ void CG_AddWeaponOnTag( entity_t *ent, orientation_t *tag, int weaponid, int eff
 			barrel.renderfx = ent->renderfx;
 			barrel.frame = 0;
 			barrel.oldframe = 0;
+			barrel.isViewModel = true;
 
 			// rotation
 			if( barrel_time > cg.time )
@@ -664,8 +645,6 @@ void CG_AddWeaponOnTag( entity_t *ent, orientation_t *tag, int weaponid, int eff
 
 			// barrel requires special tagging
 			CG_PlaceRotatedModelOnTag( &barrel, &weapon, tag );
-
-			CG_AddColoredOutLineEffect( &barrel, effects, 0, 0, 0, ent->shaderRGBA[3] );
 
 			if( !( effects & EF_RACEGHOST ) )
 				CG_AddEntityToScene( &barrel ); // skelmod
@@ -704,6 +683,7 @@ void CG_AddWeaponOnTag( entity_t *ent, orientation_t *tag, int weaponid, int eff
 		flash.renderfx = ent->renderfx | RF_NOSHADOW;
 		flash.frame = 0;
 		flash.oldframe = 0;
+		flash.isViewModel = true;
 
 		CG_PlaceModelOnTag( &flash, &weapon, tag );
 

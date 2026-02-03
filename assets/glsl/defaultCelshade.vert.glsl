@@ -3,6 +3,7 @@
 #include "include/attributes.glsl"
 #include "include/rgbgen.glsl"
 #include_if(APPLY_FOG) "include/fog.glsl"
+#include "include/motion_vector.glsl"
 
 qf_varying vec2 v_TexCoord;
 qf_varying vec3 v_TexCoordCube;
@@ -43,13 +44,5 @@ void main(void)
 
 	gl_Position = u_ModelViewProjectionMatrix * Position;
 
-#ifdef APPLY_MOTION_VECTORS
-	// 计算上一帧位置
-	vec4 PrevPosition = u_LastModelViewProjectionMatrix * Position;
-
-	// 应用上一帧的模型视图投影变换
-	// 对于静态模型，使用上一帧矩阵计算位置（包含相机和物体运动）
-	// 对于骨骼动画，使用上一帧矩阵和上一帧骨骼位置计算位置
-	v_MotionVector = (gl_Position.xy / gl_Position.w) - (PrevPosition.xy / PrevPosition.w);
-#endif
+	ApplyMotionVector();
 }

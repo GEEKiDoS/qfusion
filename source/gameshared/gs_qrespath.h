@@ -35,9 +35,6 @@ extern "C" {
 //
 //
 
-//outlines
-#define DEFAULT_OUTLINE_HEIGHT	    0.3f
-
 // icons
 
 // armor

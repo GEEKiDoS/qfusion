@@ -70,9 +70,6 @@ cvar_t *cg_showBloodTrail;
 cvar_t *cg_projectileFireTrailAlpha;
 cvar_t *cg_bloodTrailAlpha;
 cvar_t *cg_gibs;
-cvar_t *cg_outlineModels;
-cvar_t *cg_outlineWorld;
-cvar_t *cg_outlinePlayers;
 cvar_t *cg_drawEntityBoxes;
 cvar_t *cg_fov;
 cvar_t *cg_zoomfov;
@@ -782,9 +779,6 @@ static void CG_RegisterVariables( void )
 	cg_projectileFireTrailAlpha =	trap_Cvar_Get( "cg_projectileFireTrailAlpha", "0.45", CVAR_ARCHIVE );
 	cg_bloodTrailAlpha =	trap_Cvar_Get( "cg_bloodTrailAlpha", "1.0", CVAR_ARCHIVE );
 	cg_gibs =		trap_Cvar_Get( "cg_gibs", "1", CVAR_ARCHIVE );
-	cg_outlineModels =	trap_Cvar_Get( "cg_outlineModels", "1", CVAR_ARCHIVE );
-	cg_outlineWorld =	trap_Cvar_Get( "cg_outlineWorld", "0", CVAR_ARCHIVE );
-	cg_outlinePlayers =	trap_Cvar_Get( "cg_outlinePlayers", "1", CVAR_ARCHIVE );
 	cg_drawEntityBoxes =	trap_Cvar_Get( "cg_drawEntityBoxes", "0", CVAR_DEVELOPER );
 	cg_showObituaries =	trap_Cvar_Get( "cg_showObituaries", va( "%i", CG_OBITUARY_HUD|CG_OBITUARY_CENTER ), CVAR_ARCHIVE );
     cg_damageNumbers = trap_Cvar_Get( "cg_damageNumbers", "1", CVAR_ARCHIVE );
@@ -813,7 +807,7 @@ static void CG_RegisterVariables( void )
 	cg_weaponAutoSwitch =	trap_Cvar_Get( "cg_weaponAutoSwitch", "2", CVAR_ARCHIVE );
 
 	cg_voiceChats =		trap_Cvar_Get( "cg_voiceChats", "1", CVAR_ARCHIVE );
-	cg_shadows =		trap_Cvar_Get( "cg_shadows", "1", CVAR_ARCHIVE );
+	cg_shadows =		trap_Cvar_Get( "cg_shadows", "0", CVAR_ARCHIVE );
 
 	cg_laserBeamSubdivisions = trap_Cvar_Get( "cg_laserBeamSubdivisions", "10", CVAR_ARCHIVE );
 	cg_projectileAntilagOffset = trap_Cvar_Get( "cg_projectileAntilagOffset", "1.0", CVAR_ARCHIVE );

@@ -375,7 +375,8 @@ void CG_AddViewWeapon( cg_viewweapon_t *viewweapon )
 	VectorCopy( viewweapon->ent.origin, viewweapon->ent.origin2 );
 	VectorCopy( cg_entities[viewweapon->POVnum].ent.lightingOrigin, viewweapon->ent.lightingOrigin );
 
-	CG_AddColoredOutLineEffect( &viewweapon->ent, cg.effects, 0, 0, 0, viewweapon->ent.shaderRGBA[3] );
+	viewweapon->ent.isViewModel = true;
+
 	CG_AddEntityToScene( &viewweapon->ent );
 	CG_AddShellEffects( &viewweapon->ent, cg.effects );
 
@@ -384,5 +385,5 @@ void CG_AddViewWeapon( cg_viewweapon_t *viewweapon )
 
 	// add attached weapon
 	if( CG_GrabTag( &tag, &viewweapon->ent, "tag_weapon" ) )
-		CG_AddWeaponOnTag( &viewweapon->ent, &tag, viewweapon->weapon, cg.effects|EF_OUTLINE, NULL, flash_time, cg_entPModels[viewweapon->POVnum].barrel_time );
+		CG_AddWeaponOnTag( &viewweapon->ent, &tag, viewweapon->weapon, cg.effects, NULL, flash_time, cg_entPModels[viewweapon->POVnum].barrel_time );
 }

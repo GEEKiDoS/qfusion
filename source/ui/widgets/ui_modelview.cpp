@@ -60,8 +60,6 @@ public:
 		VectorSet(baseangles, 0, 0, 0);
 		VectorSet(anglespeed, 0, 0, 0);
 		entity.scale = 1.0f;
-		entity.outlineHeight = 0.3f;
-		Vector4Set(entity.outlineRGBA, 64, 64, 64, 255);
 		Vector4Set(entity.shaderRGBA, 255, 255, 255, 255);
 	}
 
@@ -158,15 +156,6 @@ public:
 			else if (*it == "model-scale")
 			{
 				entity.scale = GetProperty(*it)->Get<float>();
-			}
-			else if (*it == "model-outline-height")
-			{
-				entity.outlineHeight = GetProperty(*it)->Get<float>();
-			}
-			else if (*it == "model-outline-color")
-			{
-				Rocket::Core::Colourb color = GetProperty(*it)->Get<Rocket::Core::Colourb>();
-				Vector4Set(entity.outlineRGBA, color.red, color.green, color.blue, color.alpha);
 			}
 			else if (*it == "model-shader-color")
 			{
@@ -358,8 +347,6 @@ public:
 		StyleSheetSpecification::RegisterProperty("model-fov-x", "30", false).AddParser( "keyword", "auto" ).AddParser("number");
 		StyleSheetSpecification::RegisterProperty("model-fov-y", "auto", false).AddParser( "keyword", "auto" ).AddParser("number");
 		StyleSheetSpecification::RegisterProperty("model-scale", "1", false).AddParser("number");
-		StyleSheetSpecification::RegisterProperty("model-outline-height", "0.3", false).AddParser("number"); // DEFAULT_OUTLINE_HEIGHT
-		StyleSheetSpecification::RegisterProperty("model-outline-color", "#404040FF", false).AddParser("color");
 		StyleSheetSpecification::RegisterProperty("model-shader-color", "#FFFFFFFF", false).AddParser("color");
 		StyleSheetSpecification::RegisterProperty("model-rotation-pitch", "0", false).AddParser("number");
 		StyleSheetSpecification::RegisterProperty("model-rotation-yaw", "0", false).AddParser("number");

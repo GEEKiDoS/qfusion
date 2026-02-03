@@ -170,7 +170,6 @@ static void RP_ReloadShaders_f()
 	RP_RegisterProgram( GLSL_PROGRAM_TYPE_DISTORTION, DEFAULT_GLSL_DISTORTION_PROGRAM, NULL, NULL, 0, 0 );
 	RP_RegisterProgram( GLSL_PROGRAM_TYPE_RGB_SHADOW, DEFAULT_GLSL_RGB_SHADOW_PROGRAM, NULL, NULL, 0, 0 );
 	RP_RegisterProgram( GLSL_PROGRAM_TYPE_SHADOWMAP, DEFAULT_GLSL_SHADOWMAP_PROGRAM, NULL, NULL, 0, 0 );
-	RP_RegisterProgram( GLSL_PROGRAM_TYPE_OUTLINE, DEFAULT_GLSL_OUTLINE_PROGRAM, NULL, NULL, 0, 0 );
 	RP_RegisterProgram( GLSL_PROGRAM_TYPE_Q3A_SHADER, DEFAULT_GLSL_Q3A_SHADER_PROGRAM, NULL, NULL, 0, 0 );
 	RP_RegisterProgram( GLSL_PROGRAM_TYPE_CELSHADE, DEFAULT_GLSL_CELSHADE_PROGRAM, NULL, NULL, 0, 0 );
 	RP_RegisterProgram( GLSL_PROGRAM_TYPE_FOG, DEFAULT_GLSL_FOG_PROGRAM, NULL, NULL, 0, 0 );
@@ -632,7 +631,6 @@ static const glsl_feature_t glsl_features_material[] =
 	{ GLSL_SHADER_COMMON_AFUNC_GT0, "#define QF_ALPHATEST(a) { if ((a) <= 0.0) discard; }\n", "_afunc_gt0" },
 
 	{ GLSL_SHADER_COMMON_TC_MOD, "#define APPLY_TC_MOD\n", "_tc_mod" },
-	{ GLSL_SHADER_COMMON_MOTION_VECTORS, "#define APPLY_MOTION_VECTORS\n", "_motion" }, // 运动向量支持
 
 	{ GLSL_SHADER_MATERIAL_LIGHTSTYLE3, "#define NUM_LIGHTMAPS 4\n#define qf_lmvec01 vec4\n#define qf_lmvec23 vec4\n", "_ls3" },
 	{ GLSL_SHADER_MATERIAL_LIGHTSTYLE2, "#define NUM_LIGHTMAPS 3\n#define qf_lmvec01 vec4\n#define qf_lmvec23 vec2\n", "_ls2" },
@@ -733,27 +731,6 @@ static const glsl_feature_t glsl_features_shadowmap[] =
 	{ 0, NULL, NULL }
 };
 
-static const glsl_feature_t glsl_features_outline[] =
-{
-	{ GLSL_SHADER_COMMON_BONE_TRANSFORMS4, "#define QF_NUM_BONE_INFLUENCES 4\n", "_bones4" },
-	{ GLSL_SHADER_COMMON_BONE_TRANSFORMS3, "#define QF_NUM_BONE_INFLUENCES 3\n", "_bones3" },
-	{ GLSL_SHADER_COMMON_BONE_TRANSFORMS2, "#define QF_NUM_BONE_INFLUENCES 2\n", "_bones2" },
-	{ GLSL_SHADER_COMMON_BONE_TRANSFORMS1, "#define QF_NUM_BONE_INFLUENCES 1\n", "_bones1" },
-
-	{ GLSL_SHADER_COMMON_RGB_GEN_CONST, "#define APPLY_RGB_CONST\n", "_cc" },
-	{ GLSL_SHADER_COMMON_ALPHA_GEN_CONST, "#define APPLY_ALPHA_CONST\n", "_ac" },
-
-	{ GLSL_SHADER_COMMON_FOG, "#define APPLY_FOG\n#define APPLY_FOG_IN 1\n", "_fog" },
-	{ GLSL_SHADER_COMMON_FOG_RGB, "#define APPLY_FOG_COLOR\n", "_rgb" },
-
-	{ GLSL_SHADER_COMMON_INSTANCED_TRANSFORMS, "#define APPLY_INSTANCED_TRANSFORMS\n", "_instanced" },
-	{ GLSL_SHADER_COMMON_INSTANCED_ATTRIB_TRANSFORMS, "#define APPLY_INSTANCED_TRANSFORMS\n#define APPLY_INSTANCED_ATTRIB_TRANSFORMS\n", "_instanced_va" },
-
-	{ GLSL_SHADER_OUTLINE_OUTLINES_CUTOFF, "#define APPLY_OUTLINES_CUTOFF\n", "_outcut" },
-
-	{ 0, NULL, NULL }
-};
-
 static const glsl_feature_t glsl_features_q3a[] =
 {
 	{ GLSL_SHADER_COMMON_GREYSCALE, "#define APPLY_GREYSCALE\n", "_grey" },
@@ -795,7 +772,6 @@ static const glsl_feature_t glsl_features_q3a[] =
 	{ GLSL_SHADER_COMMON_AFUNC_GE128, "#define QF_ALPHATEST(a) { if ((a) < 0.5) discard; }\n", "_afunc_ge128" },
 	{ GLSL_SHADER_COMMON_AFUNC_LT128, "#define QF_ALPHATEST(a) { if ((a) >= 0.5) discard; }\n", "_afunc_lt128" },
 	{ GLSL_SHADER_COMMON_AFUNC_GT0, "#define QF_ALPHATEST(a) { if ((a) <= 0.0) discard; }\n", "_afunc_gt0" },
-
 
 	{ GLSL_SHADER_COMMON_TC_MOD, "#define APPLY_TC_MOD\n", "_tc_mod" },
 
@@ -887,9 +863,11 @@ static const glsl_feature_t glsl_features_fog[] =
 
 static const glsl_feature_t glsl_features_fxaa[] =
 {
-	{ GLSL_SHADER_FXAA_FXAA3, "#define APPLY_FXAA3\n", "_fxaa3" },
-
 	{ 0, NULL, NULL }
+};
+
+static const glsl_feature_t glsl_features_skybox[] = {
+	{ 0, NULL, NULL },
 };
 
 static const glsl_feature_t * const glsl_programtypes_features[] =
@@ -904,8 +882,6 @@ static const glsl_feature_t * const glsl_programtypes_features[] =
 	glsl_features_rgbshadow,
 	// GLSL_PROGRAM_TYPE_SHADOWMAP
 	glsl_features_shadowmap,
-	// GLSL_PROGRAM_TYPE_OUTLINE
-	glsl_features_outline,
 	// GLSL_PROGRAM_TYPE_UNUSED
 	glsl_features_empty,
 	// GLSL_PROGRAM_TYPE_Q3A_SHADER
@@ -919,7 +895,9 @@ static const glsl_feature_t * const glsl_programtypes_features[] =
 	// GLSL_PROGRAM_TYPE_YUV
 	glsl_features_empty,
 	// GLSL_PROGRAM_TYPE_COLORCORRECTION
-	glsl_features_empty
+	glsl_features_empty,
+	// GLSL_PROGRAM_TYPE_SKYBOX
+	glsl_features_skybox,
 };
 
 // ======================================================================================
@@ -1030,6 +1008,43 @@ QF_GLSL_PI \
 "}\n" \
 "\n"
 
+#define QF_BUILTIN_GLSL_QUAT_TRANSFORM_LAST \
+"void QF_VertexDualQuatsTransformPosition_Last(inout vec4 Position)\n" \
+"{\n" \
+"	ivec4 Indices = ivec4(a_BonesIndices * 2.0);\n" \
+"	vec4 DQReal = u_PrevDualQuats[Indices.x];\n" \
+"	vec4 DQDual = u_PrevDualQuats[Indices.x + 1];\n" \
+"#if QF_NUM_BONE_INFLUENCES >= 2\n" \
+"	DQReal *= a_BonesWeights.x;\n" \
+"	DQDual *= a_BonesWeights.x;\n" \
+"	vec4 DQReal1 = u_PrevDualQuats[Indices.y];\n" \
+"	vec4 DQDual1 = u_PrevDualQuats[Indices.y + 1];\n" \
+"	float Scale = mix(-1.0, 1.0, step(0.0, dot(DQReal1, DQReal))) * a_BonesWeights.y;\n" \
+"	DQReal += DQReal1 * Scale;\n" \
+"	DQDual += DQDual1 * Scale;\n" \
+"#if QF_NUM_BONE_INFLUENCES >= 3\n" \
+"	DQReal1 = u_PrevDualQuats[Indices.z];\n" \
+"	DQDual1 = u_PrevDualQuats[Indices.z + 1];\n" \
+"	Scale = mix(-1.0, 1.0, step(0.0, dot(DQReal1, DQReal))) * a_BonesWeights.z;\n" \
+"	DQReal += DQReal1 * Scale;\n" \
+"	DQDual += DQDual1 * Scale;\n" \
+"#if QF_NUM_BONE_INFLUENCES >= 4\n" \
+"	DQReal1 = u_PrevDualQuats[Indices.w];\n" \
+"	DQDual1 = u_PrevDualQuats[Indices.w + 1];\n" \
+"	Scale = mix(-1.0, 1.0, step(0.0, dot(DQReal1, DQReal))) * a_BonesWeights.w;\n" \
+"	DQReal += DQReal1 * Scale;\n" \
+"	DQDual += DQDual1 * Scale;\n" \
+"#endif // QF_NUM_BONE_INFLUENCES >= 4\n" \
+"#endif // QF_NUM_BONE_INFLUENCES >= 3\n" \
+"	float Len = 1.0 / length(DQReal);\n" \
+"	DQReal *= Len;\n" \
+"	DQDual *= Len;\n" \
+"#endif // QF_NUM_BONE_INFLUENCES >= 2\n" \
+"	Position.xyz += (cross(DQReal.xyz, cross(DQReal.xyz, Position.xyz) + Position.xyz * DQReal.w + DQDual.xyz) +\n" \
+"		DQDual.xyz*DQReal.w - DQReal.xyz*DQDual.w) * 2.0;\n" \
+"}\n" \
+"\n"
+
 #define QF_BUILTIN_GLSL_QUAT_TRANSFORM \
 "qf_attribute vec4 a_BonesIndices, a_BonesWeights;\n" \
 "uniform vec4 u_DualQuats[MAX_UNIFORM_BONES*2];\n" \
@@ -1038,7 +1053,8 @@ QF_GLSL_PI \
 QF_BUILTIN_GLSL_QUAT_TRANSFORM_OVERLOAD \
 "#define QF_DUAL_QUAT_TRANSFORM_TANGENT\n" \
 QF_BUILTIN_GLSL_QUAT_TRANSFORM_OVERLOAD \
-"#undef QF_DUAL_QUAT_TRANSFORM_TANGENT\n"
+"#undef QF_DUAL_QUAT_TRANSFORM_TANGENT\n" \
+QF_BUILTIN_GLSL_QUAT_TRANSFORM_LAST
 
 #define QF_BUILTIN_GLSL_INSTANCED_TRANSFORMS \
 "#if defined(APPLY_INSTANCED_ATTRIB_TRANSFORMS)\n" \
@@ -2046,19 +2062,6 @@ void RP_UpdateTextureUniforms( int elem, int TexWidth, int TexHeight )
 	if( program->loc.TextureParams >= 0 )
 		qglUniform4fARB( program->loc.TextureParams, TexWidth, TexHeight, 
 		TexWidth ? 1.0 / TexWidth : 1.0, TexHeight ? 1.0 / TexHeight : 1.0 );
-}
-
-/*
-* RP_UpdateOutlineUniforms
-*/
-void RP_UpdateOutlineUniforms( int elem, float projDistance )
-{
-	glsl_program_t *program = r_glslprograms + elem - 1;
-
-	if( program->loc.OutlineHeight >= 0 )
-		qglUniform1fARB( program->loc.OutlineHeight, projDistance );
-	if( program->loc.OutlineCutOff >= 0 )
-		qglUniform1fARB( program->loc.OutlineCutOff, max( 0, r_outlines_cutoff->value ) );
 }
 
 /*

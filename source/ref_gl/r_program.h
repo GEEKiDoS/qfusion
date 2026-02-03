@@ -47,7 +47,6 @@ enum
 	GLSL_PROGRAM_TYPE_DISTORTION,
 	GLSL_PROGRAM_TYPE_RGB_SHADOW,
 	GLSL_PROGRAM_TYPE_SHADOWMAP,
-	GLSL_PROGRAM_TYPE_OUTLINE,
 	GLSL_PROGRAM_TYPE_UNUSED,
 	GLSL_PROGRAM_TYPE_Q3A_SHADER,
 	GLSL_PROGRAM_TYPE_CELSHADE,
@@ -109,7 +108,6 @@ enum
 #define GLSL_SHADER_COMMON_FRAGMENT_HIGHP		GLSL_BIT(26)
 
 #define GLSL_SHADER_COMMON_TC_MOD				GLSL_BIT(27)
-#define GLSL_SHADER_COMMON_MOTION_VECTORS		GLSL_BIT(28) // 运动向量支持
 
 // material prgoram type features
 #define GLSL_SHADER_MATERIAL_LIGHTSTYLE0		GLSL_BIT(32)
@@ -187,9 +185,6 @@ enum
 #define GLSL_SHADER_CELSHADE_CEL_LIGHT			GLSL_BIT(39)
 #define GLSL_SHADER_CELSHADE_CEL_LIGHT_ADD		GLSL_BIT(40)
 
-// fxaa
-#define GLSL_SHADER_FXAA_FXAA3					GLSL_BIT(32)
-
 void RP_Init( void );
 void RP_Shutdown( void );
 void RP_PrecachePrograms( void );
@@ -210,7 +205,7 @@ void RP_UpdateShaderUniforms( int elem,
 
 void RP_UpdateViewUniforms( int elem, 
 	const mat4_t modelviewMatrix, const mat4_t modelviewProjectionMatrix,
-	const mat4_t lastModelViewProjectionMatrix, // 上一帧MVP矩阵（用于运动向量）
+	const mat4_t lastModelViewProjectionMatrix,
 	const vec3_t viewOrigin, const mat3_t viewAxis, 
 	const float mirrorSide, 
 	int viewport[4],

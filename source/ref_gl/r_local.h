@@ -193,6 +193,7 @@ typedef struct
 
 	mat4_t			lastObjectMatrix;
 	mat4_t			lastCameraMatrix;
+	mat4_t			lastProjectionMatrix;
 
 	float			skyMins[2][6];
 	float			skyMaxs[2][6];
@@ -405,10 +406,6 @@ extern cvar_t *r_shadows_maxtexsize;
 extern cvar_t *r_shadows_pcf;
 extern cvar_t *r_shadows_self_shadow;
 extern cvar_t *r_shadows_dither;
-
-extern cvar_t *r_outlines_world;
-extern cvar_t *r_outlines_scale;
-extern cvar_t *r_outlines_cutoff;
 
 extern cvar_t *r_soft_particles;
 extern cvar_t *r_soft_particles_scale;
@@ -639,8 +636,6 @@ void		R_SetCustomColor( int num, int r, int g, int b );
 int			R_GetCustomColor( int num );
 void		R_ShutdownCustomColors( void );
 
-#define ENTITY_OUTLINE(ent) (( !(rn.renderFlags & RF_MIRRORVIEW) && ((ent)->renderfx & RF_VIEWERMODEL) ) ? 0 : (ent)->outlineHeight)
-
 void		R_ClearRefInstStack( void );
 bool		R_PushRefInst( void );
 void		R_PopRefInst( void );
@@ -668,7 +663,6 @@ void R_InitDrawLists( void );
 
 void R_SortDrawList( drawList_t *list );
 void R_DrawSurfaces( drawList_t *list );
-void R_DrawOutlinedSurfaces( drawList_t *list );
 
 void R_CopyOffsetElements( const elem_t *inelems, int numElems, int vertsOffset, elem_t *outelems );
 void R_CopyOffsetTriangles( const elem_t *inelems, int numElems, int vertsOffset, elem_t *outelems );
@@ -851,7 +845,6 @@ typedef struct
 	float			mapLightColorScale;		// 1<<overbrightbits * intensity
 
 	float			ambient[3];
-	byte_vec4_t		outlineColor;
 	byte_vec4_t		environmentColor;
 
 	float			lightingIntensity;
@@ -866,8 +859,6 @@ typedef struct
 	bool		checkWaterCrossing;		// check above and below so crossing solid water doesn't draw wrong
 
 	bool		forceClear;
-
-	bool		forceWorldOutlines;
 } mapconfig_t;
 
 extern mapconfig_t	mapConfig;

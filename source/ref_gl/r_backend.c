@@ -278,6 +278,11 @@ void RB_ClearDepth( float depth )
 	qglClearDepth( depth );
 }
 
+void RB_ViewmodelHack(bool enable)
+{
+	rb.viewmodelHack = enable;
+}
+
 /*
 * RB_LoadCameraMatrix
 */
@@ -298,17 +303,20 @@ void RB_LoadObjectMatrix( const mat4_t m, const mat4_t last )
 
 	// Calculate last mvp for motion vector
 	Matrix4_MultiplyFast( rb.lastCameraMatrix, last, rb.lastModelViewMatrix );
-	Matrix4_Multiply( rb.projectionMatrix, rb.lastModelViewMatrix, rb.lastModelViewProjectionMatrix );
+	Matrix4_Multiply( rb.lastProjectionMatrix, rb.lastModelViewMatrix, rb.lastModelViewProjectionMatrix );
+
+	RB_ViewmodelHack( false );
 }
 
 /*
 * RB_LoadProjectionMatrix
 */
-void RB_LoadProjectionMatrix( const mat4_t m )
+void RB_LoadProjectionMatrix( const mat4_t m, const mat4_t last )
 {
 	Matrix4_Copy( m, rb.projectionMatrix );
+	Matrix4_Copy( last, rb.lastProjectionMatrix );
 	Matrix4_Multiply( m, rb.modelviewMatrix, rb.modelviewProjectionMatrix );
-	Matrix4_Multiply( rb.projectionMatrix, rb.lastModelViewMatrix, rb.lastModelViewProjectionMatrix );
+	Matrix4_Multiply( last, rb.lastModelViewMatrix, rb.lastModelViewProjectionMatrix );
 }
 
 /*
@@ -475,6 +483,22 @@ void RB_SetState( int state )
 			else
 				qglDisable( GL_STENCIL_TEST );
 		}
+	}
+		
+	if( diff & GLSTATE_NO_NORMALWRITE ) 
+	{
+		if( state & GLSTATE_NO_NORMALWRITE )
+			qglColorMaski( FBO_TEXTURE_NORMAL, false, false, false, false );
+		else
+			qglColorMaski( FBO_TEXTURE_NORMAL, true, true, true, true );
+	}
+
+	if (diff & GLSTATE_NO_MOTIONWRITE)
+	{
+		if( state & GLSTATE_NO_MOTIONWRITE )
+			qglColorMaski( FBO_TEXTURE_MOTION_VECTOR, false, false, false, false );
+		else
+			qglColorMaski( FBO_TEXTURE_MOTION_VECTOR, true, true, true, true );
 	}
 
 	rb.gl.state = state;

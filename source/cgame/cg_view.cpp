@@ -595,9 +595,6 @@ static int CG_RenderFlags( void )
 	if( cg.portalInView )
 		rdflags |= RDF_PORTALINVIEW;
 
-	if( cg_outlineWorld->integer )
-		rdflags |= RDF_WORLDOUTLINES;
-
 	if( cg.view.flipped )
 		rdflags |= RDF_FLIPPED;
 
@@ -1152,9 +1149,7 @@ void CG_RenderView( float frameTime, float realFrameTime, int realTime, unsigned
 	CG_AddPolys();
 	CG_AddLightStyles();
 
-#ifndef PUBLIC_BUILD
 	CG_AddTest();
-#endif
 
 	// offset vieworg appropriately if we're doing stereo separation
 	VectorMA( cg.view.origin, stereo_separation, &cg.view.axis[AXIS_RIGHT], rd->vieworg );

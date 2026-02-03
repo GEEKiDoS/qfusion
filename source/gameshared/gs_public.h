@@ -1083,8 +1083,7 @@ enum
 // these ones can be only set from client side
 #define EF_AMMOBOX					( 1<<16 )
 #define EF_RACEGHOST				( 1<<17 )
-#define EF_OUTLINE					( 1<<18 )
-#define EF_GHOSTITEM				( 1<<19 )
+#define EF_GHOSTITEM				( 1<<18 )
 
 //===============================================================
 // gs_weapons.c

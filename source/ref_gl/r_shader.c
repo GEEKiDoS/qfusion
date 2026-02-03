@@ -1014,11 +1014,6 @@ static void Shader_SoftParticle( shader_t *shader, shaderpass_t *pass, const cha
 	shader->flags |= SHADER_SOFT_PARTICLE;
 }
 
-static void Shader_ForceWorldOutlines( shader_t *shader, shaderpass_t *pass, const char **ptr )
-{
-	shader->flags |= SHADER_FORCE_OUTLINE_WORLD;
-}
-
 static const shaderkey_t shaderkeys[] =
 {
 	{ "cull", Shader_Cull },
@@ -1045,7 +1040,6 @@ static const shaderkey_t shaderkeys[] =
 	{ "template", Shader_Template },
 	{ "skip", Shader_Skip },
 	{ "softparticle", Shader_SoftParticle },
-	{ "forceworldoutlines", Shader_ForceWorldOutlines },
 
 	{ NULL,	NULL }
 };
@@ -1318,6 +1312,8 @@ static void Shaderpass_Material( shader_t *shader, shaderpass_t *pass, const cha
 	pass->program_type = GLSL_PROGRAM_TYPE_MATERIAL;
 	Shaderpass_LoadMaterial( &pass->images[1], &pass->images[2], &pass->images[3],
 		pass->images[0]->name, flags, shader->imagetags );
+
+	ri.Com_Printf( "Shader %s use program type %d\n", shader->name, pass->program_type );
 }
 
 static void Shaderpass_Distortion( shader_t *shader, shaderpass_t *pass, const char **ptr )

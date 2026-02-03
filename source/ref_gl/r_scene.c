@@ -78,17 +78,12 @@ void R_AddEntityToScene( const entity_t *ent )
 		entity_t *de = R_NUM2ENT(eNum);
 
 		*de = *ent;
-		if( r_outlines_scale->value <= 0 )
-			de->outlineHeight = 0;
 		rsc.entShadowBits[eNum] = 0;
 		rsc.entShadowGroups[eNum] = 0;
 
 		if( de->rtype == RT_MODEL ) {
 			if( de->model && de->model->type == mod_brush ) {
 				rsc.bmodelEntities[rsc.numBmodelEntities++] = de;
-			}
-			if( !(de->renderfx & RF_NOSHADOW) ) {
-				R_AddLightOccluder( de ); // build groups and mark shadow casters
 			}
 		}
 		else if( de->rtype == RT_SPRITE ) {
@@ -307,14 +302,17 @@ void R_PostProcess( const image_t *ppSource, const refdef_t *fd )
 
 	// apply FXAA
 	if( r_fxaa->integer ) {
-		R_BlitTextureToScrFbo( fd, ppSource, 0, GLSL_PROGRAM_TYPE_FXAA, colorWhite, 0, 0, NULL );
+		R_BlitTextureToScrFbo( fd, ppSource, ppSource->fbo, GLSL_PROGRAM_TYPE_FXAA, colorWhite, 0, 0, NULL );
 	}
 
 	// apply color correction
 	shader_t *cc = rn.refdef.colorCorrection;
 	if( cc && cc->numpasses > 0 && cc->passes[0].images[0] && cc->passes[0].images[0] != rsh.noTexture ) {
-		R_BlitTextureToScrFbo( fd, ppSource, 0, GLSL_PROGRAM_TYPE_COLORCORRECTION, colorWhite, 0, 1, &( rn.refdef.colorCorrection->passes[0].images[0] ) );
+		R_BlitTextureToScrFbo( fd, ppSource, ppSource->fbo, GLSL_PROGRAM_TYPE_COLORCORRECTION, colorWhite, 0, 1, &( rn.refdef.colorCorrection->passes[0].images[0] ) );
 	}
+
+	// finally copy result to output framebuffer
+	R_BlitTextureToScrFbo( fd, ppSource, 0, GLSL_PROGRAM_TYPE_NONE, colorWhite, 0, 0, NULL );
 }
 
 /*

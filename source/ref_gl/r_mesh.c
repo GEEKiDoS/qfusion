@@ -505,10 +505,10 @@ static void _R_DrawSurfaces( drawList_t *list )
 					Matrix4_Copy( rn.projectionMatrix, projectionMatrix );
 					Matrix4_PerspectiveProjectionToInfinity( Z_NEAR, projectionMatrix, glConfig.depthEpsilon );
 
-					RB_LoadProjectionMatrix( projectionMatrix );
+					RB_LoadProjectionMatrix( projectionMatrix, projectionMatrix );
 				}
 				else {
-					RB_LoadProjectionMatrix( rn.projectionMatrix );
+					RB_LoadProjectionMatrix( rn.projectionMatrix, rn.lastProjectionMatrix );
 				}
 			}
 

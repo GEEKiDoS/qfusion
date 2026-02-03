@@ -2,6 +2,7 @@
 #include "include/uniforms.glsl"
 #include_if(APPLY_FOG) "include/fog.glsl"
 #include_if(APPLY_GREYSCALE) "include/greyscale.glsl"
+#include "include/motion_vector.glsl"
 
 qf_varying vec2 v_TexCoord;
 qf_varying vec3 v_TexCoordCube;
@@ -95,4 +96,6 @@ void main(void)
 #endif
 
 	qf_FragColor = vec4(outColor);
+
+	ApplyMotionVector();
 }
