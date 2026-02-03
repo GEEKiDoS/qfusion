@@ -305,6 +305,10 @@ void R_PostProcess( const image_t *ppSource, const refdef_t *fd )
 		R_BlitTextureToScrFbo( fd, ppSource, ppSource->fbo, GLSL_PROGRAM_TYPE_FXAA, colorWhite, 0, 0, NULL );
 	}
 
+	if( r_motionblur->integer ) {
+		R_BlitTextureToScrFbo( fd, ppSource, ppSource->fbo, GLSL_PROGRAM_TYPE_MOTIONBLUR, colorWhite, 0, 2, ( rsh.screenTextures + FBO_TEXTURE_MOTION_VECTOR ) );
+	}
+
 	// apply color correction
 	shader_t *cc = rn.refdef.colorCorrection;
 	if( cc && cc->numpasses > 0 && cc->passes[0].images[0] && cc->passes[0].images[0] != rsh.noTexture ) {

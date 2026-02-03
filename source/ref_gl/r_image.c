@@ -853,13 +853,8 @@ static void R_TextureFormat( int flags, int samples, int *comp, int *format, int
 		} else {
 			// Color framebuffer texture format
 			*format = samples == 4 ? GL_RGBA : GL_RGB;
-			if( qgl_VERSION_3_0 ) {
-				*comp = samples == 4 ? GL_RGBA16F : GL_RGB16F;
-				*type = GL_FLOAT;
-			} else {
-				*comp = samples == 4 ? GL_RGBA8 : GL_RGBA8;
-				*type = GL_UNSIGNED_BYTE;
-			}
+			*comp = ( flags & IT_HIGH_PRECISION ) ? ( samples == 4 ? GL_RGBA32F : GL_RGB32F ) : ( samples == 4 ? GL_RGBA16F : GL_RGB16F );
+			*type = GL_FLOAT;
 		}
 	}
 	else
@@ -927,6 +922,11 @@ static void R_SetupTexParameters( int flags, int upload_width, int upload_height
 			qglTexParameteri( target, GL_TEXTURE_MAX_LOD_SGIS, mip );
 			qglTexParameteri( target, GL_TEXTURE_MAX_LEVEL_SGIS, mip );
 		}
+	}
+	else if (flags & IT_FRAMEBUFFER)
+	{
+		qglTexParameteri( target, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+		qglTexParameteri( target, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 	}
 	else
 	{
@@ -2450,6 +2450,9 @@ static void R_InitScreenImagePair( const char *name, image_t ***images, bool ste
 		}
 
 		int flags = (i == FBO_TEXTURE_DEPTH) ? depthFlags : colorFlags;
+		if( i == FBO_TEXTURE_MOTION_VECTOR )
+			flags |= IT_HIGH_PRECISION;
+
 		R_InitViewportTexture( images[i], va_r( tn, sizeof( tn ), "%s_%d", name, i ), i, glConfig.width, glConfig.height, 0, flags, IMAGE_TAG_BUILTIN, 4, i, fbo );
 
 		if( i == FBO_TEXTURE_DEPTH && images[FBO_TEXTURE_COLOR] ) {

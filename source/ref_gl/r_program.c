@@ -177,6 +177,7 @@ static void RP_ReloadShaders_f()
 	RP_RegisterProgram( GLSL_PROGRAM_TYPE_YUV, DEFAULT_GLSL_YUV_PROGRAM, NULL, NULL, 0, 0 );
 	RP_RegisterProgram( GLSL_PROGRAM_TYPE_COLORCORRECTION, DEFAULT_GLSL_COLORCORRECTION_PROGRAM, NULL, NULL, 0, 0 );
 	RP_RegisterProgram( GLSL_PROGRAM_TYPE_SKYBOX, DEFAULT_GLSL_SKYBOX_PROGRAM, NULL, NULL, 0, 0 );
+	RP_RegisterProgram( GLSL_PROGRAM_TYPE_MOTIONBLUR, DEFAULT_GLSL_MOTIONBLUR_PROGRAM, NULL, NULL, 0, 0 );
 }
 
 /*
@@ -898,6 +899,8 @@ static const glsl_feature_t * const glsl_programtypes_features[] =
 	glsl_features_empty,
 	// GLSL_PROGRAM_TYPE_SKYBOX
 	glsl_features_skybox,
+	// GLSL_PROGRAM_TYPE_MOTIONBLUR
+	glsl_features_empty,
 };
 
 // ======================================================================================
@@ -2338,6 +2341,8 @@ static void RP_GetUniformLocations( glsl_program_t *program )
 			locDiffuseTexture,
 			locStripesTexture,
 			locDepthTexture,
+			locMotionVectorTexture,
+			locNormalTexture,
 			locYUVTextureY,
 			locYUVTextureU,
 			locYUVTextureV,
@@ -2392,6 +2397,8 @@ static void RP_GetUniformLocations( glsl_program_t *program )
 	locYUVTextureV = qglGetUniformLocationARB( program->object, "u_YUVTextureV" );
 
 	locColorLUT = qglGetUniformLocationARB( program->object, "u_ColorLUT" );
+	locMotionVectorTexture = qglGetUniformLocationARB( program->object, "u_MotionVectorTexture" );
+	locNormalTexture = qglGetUniformLocationARB( program->object, "u_NormalTexture" );
 
 	program->loc.DeluxemapOffset = qglGetUniformLocationARB( program->object, "u_DeluxemapOffset" );
 
@@ -2540,6 +2547,12 @@ static void RP_GetUniformLocations( glsl_program_t *program )
 
 	if( locColorLUT >= 0 )
 		qglUniform1iARB( locColorLUT, 1 );
+
+	if( locMotionVectorTexture >= 0 )
+		qglUniform1iARB( locMotionVectorTexture, 1 );
+
+	if( locNormalTexture >= 0 )
+		qglUniform1iARB( locNormalTexture, 2 );
 }
 
 /*

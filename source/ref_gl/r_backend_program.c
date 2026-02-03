@@ -62,6 +62,7 @@ static void RB_RenderMeshGLSL_Q3AShader( const shaderpass_t *pass, r_glslfeat_t 
 static void RB_RenderMeshGLSL_Celshade( const shaderpass_t *pass, r_glslfeat_t programFeatures );
 static void RB_RenderMeshGLSL_Fog( const shaderpass_t *pass, r_glslfeat_t programFeatures );
 static void RB_RenderMeshGLSL_FXAA( const shaderpass_t *pass, r_glslfeat_t programFeatures );
+static void RB_RenderMeshGLSL_MotionBlur( const shaderpass_t *pass, r_glslfeat_t programFeatures );
 static void RB_RenderMeshGLSL_YUV( const shaderpass_t *pass, r_glslfeat_t programFeatures );
 
 /*
@@ -1777,7 +1778,7 @@ static void RB_RenderMeshGLSL_ColorCorrection( const shaderpass_t *pass, r_glslf
 }
 
 /*
- * RB_RenderMeshGLSL_Q3AShader
+ * RB_RenderMeshGLSL_Skybox
  */
 static void RB_RenderMeshGLSL_Skybox( const shaderpass_t *pass, r_glslfeat_t programFeatures )
 {
@@ -1794,6 +1795,32 @@ static void RB_RenderMeshGLSL_Skybox( const shaderpass_t *pass, r_glslfeat_t pro
 	int program = RB_RegisterProgram( GLSL_PROGRAM_TYPE_SKYBOX, NULL, rb.currentShader->deformsKey, rb.currentShader->deforms, rb.currentShader->numdeforms, programFeatures );
 	if( RB_BindProgram( program ) ) {
 		RB_UpdateCommonUniforms( program, pass, NULL );
+		RB_DrawElementsReal( &rb.drawElements );
+	}
+}
+
+/*
+ * RB_RenderMeshGLSL_MotionBlur
+ */
+static void RB_RenderMeshGLSL_MotionBlur( const shaderpass_t *pass, r_glslfeat_t programFeatures )
+{
+	int program;
+	mat4_t texMatrix;
+
+	// set shaderpass state (blending, depthwrite, etc)
+	RB_SetShaderpassState( pass->flags );
+
+	Matrix4_Identity( texMatrix );
+
+	RB_BindImage( 0, pass->images[0] );
+	RB_BindImage( 1, pass->images[1] );
+	RB_BindImage( 3, pass->images[2] );
+
+	// update uniforms
+	program = RB_RegisterProgram( GLSL_PROGRAM_TYPE_MOTIONBLUR, NULL, rb.currentShader->deformsKey, rb.currentShader->deforms, rb.currentShader->numdeforms, programFeatures );
+	if( RB_BindProgram( program ) ) {
+		RB_UpdateCommonUniforms( program, pass, texMatrix );
+
 		RB_DrawElementsReal( &rb.drawElements );
 	}
 }
@@ -1855,6 +1882,9 @@ void RB_RenderMeshGLSLProgrammed( const shaderpass_t *pass, int programType )
 		break;
 	case GLSL_PROGRAM_TYPE_SKYBOX:
 		RB_RenderMeshGLSL_Skybox( pass, features );
+		break;
+	case GLSL_PROGRAM_TYPE_MOTIONBLUR:
+		RB_RenderMeshGLSL_MotionBlur( pass, features );
 		break;
 	default:
 		ri.Com_DPrintf( S_COLOR_YELLOW "WARNING: Unknown GLSL program type %i\n", programType );

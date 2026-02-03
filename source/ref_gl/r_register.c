@@ -368,7 +368,7 @@ static bool R_RegisterGLExtensions( void )
 	glConfig.ext.packed_depth_stencil = qgl_EXT_packed_depth_stencil;
 	glConfig.ext.ES3_compatibility = qgl_ARB_ES3_compatibility;
 	glConfig.ext.half_float_vertex = qgl_ARB_half_float_vertex;
-	glConfig.ext.texture_edge_clamp = qgl_SGIS_texture_edge_clamp;
+	glConfig.ext.texture_edge_clamp = true;
 	glConfig.ext.texture_cube_map = qgl_ARB_texture_cube_map;
 	glConfig.ext.depth_texture = qgl_ARB_depth_texture;
 	glConfig.ext.shadow = qgl_ARB_shadow;

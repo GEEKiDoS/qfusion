@@ -38,6 +38,7 @@ typedef uint64_t r_glslfeat_t;
 #define DEFAULT_GLSL_YUV_PROGRAM				"defaultYUV"
 #define DEFAULT_GLSL_COLORCORRECTION_PROGRAM	"defaultColorCorrection"
 #define DEFAULT_GLSL_SKYBOX_PROGRAM				"defaultSkybox"
+#define DEFAULT_GLSL_MOTIONBLUR_PROGRAM			"motionblur"
 
 // program types
 enum
@@ -55,6 +56,7 @@ enum
 	GLSL_PROGRAM_TYPE_YUV,
 	GLSL_PROGRAM_TYPE_COLORCORRECTION,
 	GLSL_PROGRAM_TYPE_SKYBOX,
+	GLSL_PROGRAM_TYPE_MOTIONBLUR,
 
 	GLSL_PROGRAM_TYPE_MAXTYPE
 };

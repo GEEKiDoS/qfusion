@@ -45,6 +45,7 @@ enum
 	,IT_3D				= 1<<18
 	,IT_STENCIL			= 1<<19		// for IT_DEPTH or IT_DEPTHRB textures, whether there's stencil
 	,IT_NO_DATA_SYNC	= 1<<20		// owned by the drawing thread, do not sync in the frontend thread
+	,IT_HIGH_PRECISION  = 1<<21     // for motion vector
 };
 
 /**
