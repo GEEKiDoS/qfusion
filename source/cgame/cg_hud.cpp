@@ -763,7 +763,7 @@ static const reference_numeric_t cg_numeric_references[] =
 	{ "ITEM_TIMER7_TEAM", CG_GetItemTimerTeam, (void *)7 },
 
 	{ "TOUCH_ATTACK", CG_GetTouchButtonPressed, (void *)BUTTON_ATTACK },
-	{ "TOUCH_SPECIAL", CG_GetTouchButtonPressed, (void *)BUTTON_SPECIAL },
+	{ "TOUCH_SPECIAL", CG_GetTouchButtonPressed, (void *)BUTTON_DASH },
 	{ "TOUCH_UPMOVE", CG_GetTouchUpmove, NULL },
 	{ "TOUCH_MOVEDIR", CG_GetTouchMovementDirection, NULL },
 
@@ -2837,32 +2837,6 @@ static bool CG_LFuncTouchMove( struct cg_layoutnode_s *commandnode, struct cg_la
 static void CG_ViewUpFunc( int id, unsigned int time )
 {
 	CG_SetTouchpad( TOUCHPAD_VIEW, -1 );
-
-	if( cg_hud_touch_zoomSeq )
-	{
-		cg_touch_t &touch = cg_touches[id];
-
-		int threshold = ( int )( cg_touch_zoomThres->value * cgs.pixelRatio );
-		if( !time || ( (int)( time - cg_hud_touch_zoomLastTouch ) > cg_touch_zoomTime->integer ) ||
-			( abs( touch.x - cg_hud_touch_zoomX ) > threshold ) ||
-			( abs( touch.y - cg_hud_touch_zoomY ) > threshold ) )
-		{
-			cg_hud_touch_zoomSeq = 0;
-		}
-
-		if( cg_hud_touch_zoomSeq == 1 )
-		{
-			cg_hud_touch_zoomSeq = 2;
-			cg_hud_touch_zoomLastTouch = time;
-			cg_hud_touch_zoomX = touch.x;
-			cg_hud_touch_zoomY = touch.y;
-		}
-		else if( cg_hud_touch_zoomSeq == 3 )
-		{
-			cg_hud_touch_zoomSeq = 0;
-			cg_hud_touch_buttons ^= BUTTON_ZOOM; // toggle zoom after a double tap
-		}
-	}
 }
 
 static bool CG_LFuncTouchView( struct cg_layoutnode_s *commandnode, struct cg_layoutnode_s *argumentnode, int numArguments )
@@ -2946,7 +2920,7 @@ static bool CG_LFuncTouchAttack( struct cg_layoutnode_s *commandnode, struct cg_
 
 static void CG_SpecialUpFunc( int id, unsigned int time )
 {
-	cg_hud_touch_buttons &= ~BUTTON_SPECIAL;
+	cg_hud_touch_buttons &= ~BUTTON_DASH;
 }
 
 static bool CG_LFuncTouchSpecial( struct cg_layoutnode_s *commandnode, struct cg_layoutnode_s *argumentnode, int numArguments )
@@ -2956,7 +2930,7 @@ static bool CG_LFuncTouchSpecial( struct cg_layoutnode_s *commandnode, struct cg
 		CG_VerticalAlignForHeight( layout_cursor_y, layout_cursor_align, layout_cursor_height ),
 		layout_cursor_width, layout_cursor_height, CG_SpecialUpFunc ) >= 0 )
 	{
-		cg_hud_touch_buttons |= BUTTON_SPECIAL;
+		cg_hud_touch_buttons |= BUTTON_DASH;
 	}
 	return true;
 }
@@ -4972,8 +4946,6 @@ void CG_UpdateHUDPostDraw( void )
 */
 void CG_UpdateHUDPostTouch( void )
 {
-	if( cg.frame.playerState.pmove.pm_type != PM_NORMAL )
-		cg_hud_touch_buttons &= ~BUTTON_ZOOM;
 }
 
 /*
@@ -4984,5 +4956,4 @@ void CG_ClearHUDInputState( void )
 	CG_CancelTouches();
 
 	cg_hud_touch_zoomSeq = 0;
-	cg_hud_touch_buttons &= ~BUTTON_ZOOM;
 }

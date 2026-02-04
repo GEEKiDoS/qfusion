@@ -569,12 +569,7 @@ void G_ClientRespawn( edict_t *self, bool ghost )
 	self->max_health = 100;
 	self->health = self->max_health;
 
-	if( AI_GetType( self->ai ) == AI_ISBOT )
-	{
-		self->think = NULL;
-		self->classname = "bot";
-	}
-	else if( self->r.svflags & SVF_FAKECLIENT )
+	if( self->r.svflags & SVF_FAKECLIENT )
 		self->classname = "fakeclient";
 	else
 		self->classname = "player";
@@ -658,8 +653,6 @@ void G_ClientRespawn( edict_t *self, bool ghost )
 	client->ps.stats[STAT_TIME_RECORD] = STAT_NOTSET;
 	client->ps.stats[STAT_TIME_ALPHA] = STAT_NOTSET;
 	client->ps.stats[STAT_TIME_BETA] = STAT_NOTSET;
-
-	BOT_Respawn( self );
 
 	self->r.client->level.respawnCount++;
 
@@ -791,8 +784,6 @@ void ClientBegin( edict_t *ent )
 
 	// schedule the next scoreboard update
 	client->level.scoreboard_time = game.realtime + scoreboardInterval - ( game.realtime%scoreboardInterval );
-
-	AI_EnemyAdded( ent );
 
 	G_ClientEndSnapFrame( ent ); // make sure all view stuff is valid
 
@@ -1481,9 +1472,6 @@ void ClientDisconnect( edict_t *ent, const char *reason )
 	// let the gametype scripts know this client just disconnected
 	G_Gametype_ScoreEvent( ent->r.client, "disconnect", NULL );
 
-	G_FreeAI( ent );
-	AI_EnemyRemoved( ent );
-
 	ent->r.inuse = false;
 	ent->r.svflags = SVF_NOCLIENT;
 
@@ -1640,7 +1628,7 @@ static void ClientMakePlrkeys( gclient_t *client, usercmd_t *ucmd )
 		clsnap->plrkeys |= ( 1 << KEYICON_CROUCH );
 	if( ucmd->buttons & BUTTON_ATTACK )
 		clsnap->plrkeys |= ( 1 << KEYICON_FIRE );
-	if( ucmd->buttons & BUTTON_SPECIAL )
+	if( ucmd->buttons & BUTTON_DASH )
 		clsnap->plrkeys |= ( 1 << KEYICON_SPECIAL );
 }
 
@@ -1717,7 +1705,7 @@ void ClientThink( edict_t *ent, usercmd_t *ucmd, int timeDelta )
 	clamp( client->timeDelta, -g_antilag_maxtimedelta->integer, 0 );
 
 	// update activity if he touched any controls
-	if( ucmd->forwardmove != 0 || ucmd->sidemove != 0 || ucmd->upmove != 0 || ( ucmd->buttons & ~BUTTON_BUSYICON ) != 0
+	if( ucmd->forwardmove != 0 || ucmd->sidemove != 0 || ucmd->upmove != 0
 		|| client->ucmd.angles[PITCH] != ucmd->angles[PITCH] || client->ucmd.angles[YAW] != ucmd->angles[YAW] )
 		G_Client_UpdateActivity( client );
 
@@ -1886,8 +1874,7 @@ void G_ClientThink( edict_t *ent )
 	// run bots thinking with the rest of clients
 	if( ent->r.svflags & SVF_FAKECLIENT )
 	{
-		if( !ent->think && AI_GetType( ent->ai ) == AI_ISBOT )
-			AI_Think( ent );
+		
 	}
 
 	trap_ExecuteClientThinks( PLAYERNUM( ent ) );

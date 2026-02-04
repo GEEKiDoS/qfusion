@@ -150,6 +150,7 @@ cvar_t *cg_playListShuffle;
 cvar_t *cg_flashWindowCount;
 
 cvar_t *cg_viewBob;
+cvar_t *cg_dashRollAmount;
 
 /*
 * CG_API
@@ -883,6 +884,7 @@ static void CG_RegisterVariables( void )
 	cg_flashWindowCount = trap_Cvar_Get( "cg_flashWindowCount", "4", CVAR_ARCHIVE );
 
 	cg_viewBob = trap_Cvar_Get( "cg_viewBob", "0", CVAR_ARCHIVE );
+	cg_dashRollAmount = trap_Cvar_Get( "cg_dashRollAmount", "10", CVAR_ARCHIVE );
 
 	cg_gamepad_moveThres = trap_Cvar_Get( "cg_gamepad_moveThres", "0.239", CVAR_ARCHIVE );
 	cg_gamepad_runThres = trap_Cvar_Get( "cg_gamepad_runThres", "0.75", CVAR_ARCHIVE );
@@ -896,6 +898,7 @@ static void CG_RegisterVariables( void )
 	cg_gamepad_accelMax = trap_Cvar_Get( "cg_gamepad_accelMax", "2", CVAR_ARCHIVE );
 	cg_gamepad_accelSpeed = trap_Cvar_Get( "cg_gamepad_accelSpeed", "3", CVAR_ARCHIVE );
 	cg_gamepad_accelThres = trap_Cvar_Get( "cg_gamepad_accelThres", "0.9", CVAR_ARCHIVE );
+	cg_gamepad_swapSticks = trap_Cvar_Get( "cg_gamepad_swapSticks", "0", CVAR_ARCHIVE );
 	cg_gamepad_swapSticks = trap_Cvar_Get( "cg_gamepad_swapSticks", "0", CVAR_ARCHIVE );
 }
 

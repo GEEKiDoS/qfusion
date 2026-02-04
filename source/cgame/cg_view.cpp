@@ -828,7 +828,7 @@ static void CG_UpdateChaseCam( void )
 		}
 
 		int chaseStep = 0;
-		if( cmd.upmove > 0 || cmd.buttons & BUTTON_SPECIAL )
+		if( cmd.upmove > 0 || cmd.buttons & BUTTON_DASH )
 			chaseStep = 1;
 		else if( cmd.upmove < 0 )
 			chaseStep = -1;
@@ -838,6 +838,23 @@ static void CG_UpdateChaseCam( void )
 				chaseCam.cmd_mode_delay = cg.time + delay;
 		}
 	}
+}
+
+static void CG_CalcDashCameraRoll( cg_viewdef_t *view )
+{
+	pmove_state_t *pm = &cg.predictedPlayerState.pmove;
+	if( !( pm->pm_flags & PMF_DASHING ) ) {
+		return;
+	}
+
+	vec3_t right;
+	AngleVectors( view->angles, NULL, right, NULL );
+	float dashDir = DotProduct( view->velocity, right ) > 0 ? 1.0f : -1.0f;
+
+	float amount = (200 - pm->stats[PM_STAT_DASHTIME]) / 200.0f;
+
+	view->angles[ROLL] = -dashDir * amount * cg_dashRollAmount->value;
+	module_Printf( "dash amount: %f\n", amount );
 }
 
 /*
@@ -945,8 +962,8 @@ static void CG_SetupViewDef( cg_viewdef_t *view, int type, bool flipped )
 		view->refdef.fov_x = CG_CalcViewFov();
 
 		CG_CalcViewBob();
-
 		VectorCopy( cg.predictedPlayerState.pmove.velocity, view->velocity );
+		CG_CalcDashCameraRoll( view );
 	}
 	else if( view->type == VIEWDEF_CAMERA )
 	{

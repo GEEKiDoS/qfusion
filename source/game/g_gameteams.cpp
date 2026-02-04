@@ -401,20 +401,6 @@ static int G_GameTypes_DenyJoinTeam( edict_t *ent, int team )
 	if( GS_HasChallengers() && !ent->r.client->queueTimeStamp )
 		return ER_TEAM_CHALLENGERS;
 
-	if( GS_TeamBasedGametype() && ( team >= TEAM_ALPHA && team < GS_MAX_TEAMS ) )
-	{
-		if( ent->r.svflags & SVF_FAKECLIENT && AI_GetType( ent->ai ) == AI_ISBOT )
-		{
-			if( level.gametype.forceTeamBots != TEAM_SPECTATOR )
-				return team == level.gametype.forceTeamBots ? ER_TEAM_OK : ER_TEAM_INVALID;
-		}
-		else
-		{
-			if( level.gametype.forceTeamHumans != TEAM_SPECTATOR )
-				return team == level.gametype.forceTeamHumans ? ER_TEAM_OK : ER_TEAM_INVALID;
-		}
-	}
-
 	//see if team is locked
 	if( G_Teams_TeamIsLocked( team ) && !G_Teams_PlayerIsInvited( team, ent ) )
 		return ER_TEAM_LOCKED;

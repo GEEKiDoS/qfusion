@@ -406,10 +406,6 @@ static void G_SetClientEffects( edict_t *ent )
 	// show cheaters!!!
 	if( ent->flags & FL_GODMODE )
 		ent->s.effects |= EF_GODMODE;
-
-	// add chatting icon effect
-	if( ent->r.client->resp.snap.buttons & BUTTON_BUSYICON )
-		ent->s.effects |= EF_BUSYICON;
 }
 
 /*

@@ -815,7 +815,7 @@ void MSG_WriteDeltaUsercmd( msg_t *buf, usercmd_t *from, usercmd_t *cmd )
 		MSG_WriteChar( buf, (int)( cmd->upmove * UCMD_PUSHFRAC_SNAPSIZE ) );
 
 	if( bits & CM_BUTTONS )
-		MSG_WriteByte( buf, cmd->buttons );
+		MSG_WriteLong( buf, cmd->buttons );
 
 	MSG_WriteLong( buf, cmd->serverTimeStamp );
 
@@ -847,7 +847,7 @@ void MSG_ReadDeltaUsercmd( msg_t *msg_read, usercmd_t *from, usercmd_t *move )
 
 	// read buttons
 	if( bits & CM_BUTTONS )
-		move->buttons = MSG_ReadByte( msg_read );
+		move->buttons = MSG_ReadLong( msg_read );
 
 	move->serverTimeStamp = MSG_ReadLong( msg_read );
 }

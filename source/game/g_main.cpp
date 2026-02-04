@@ -414,8 +414,6 @@ void G_Shutdown( void )
 
 	trap_Cvar_ForceSet( "nextmap", va( "map \"%s\"", G_SelectNextMapName() ) );
 
-	BOT_RemoveBot( "all" );
-
 	G_RemoveCommands();
 
 	G_FreeCallvotes();
@@ -676,7 +674,6 @@ void G_ExitLevel( void )
 
 	if( loadmap )
 	{
-		BOT_RemoveBot( "all" ); // MbotGame (Disconnect all bots before changing map)
 		Q_snprintfz( command, sizeof( command ), "gamemap \"%s\"\n", nextmapname );
 		trap_Cmd_ExecuteText( EXEC_APPEND, command );
 	}

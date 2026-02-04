@@ -539,10 +539,6 @@ typedef struct
 	int state;
 } kbutton_t;
 
-extern kbutton_t in_klook;
-extern kbutton_t in_strafe;
-extern kbutton_t in_speed;
-
 void CL_InitInput( void );
 void CL_InitInputDynvars( void );
 void CL_ShutdownInput( void );

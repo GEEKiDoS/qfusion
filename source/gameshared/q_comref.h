@@ -30,13 +30,12 @@ extern "C" {
 //
 // button bits
 //
-#define	BUTTON_ATTACK				1
-#define	BUTTON_WALK					2
-#define	BUTTON_SPECIAL				4
-#define	BUTTON_USE					8
-#define	BUTTON_ZOOM					16
-#define	BUTTON_BUSYICON				32
-#define	BUTTON_ANY					128     // any key whatsoever
+#define	BUTTON_ATTACK				(1 << 0)
+#define BUTTON_ATTACK2				(1 << 1)
+#define BUTTON_USE					(1 << 2)
+#define BUTTON_DASH					(1 << 3)
+
+#define	BUTTON_ANY					(1 << 31)     // any key whatsoever
 
 enum
 {
@@ -61,7 +60,7 @@ enum
 typedef struct usercmd_s
 {
 	uint8_t msec;
-	uint8_t buttons;
+	int buttons;
 	short angles[3];
 	float forwardmove, sidemove, upmove;
 	unsigned int serverTimeStamp;
@@ -119,7 +118,7 @@ typedef enum
 #define	PMF_TIME_TELEPORT   ( 1<<5 )  // pm_time is non-moving time
 #define PMF_NO_PREDICTION   ( 1<<6 )  // temporarily disables prediction (used for grappling hook)
 #define PMF_DASHING			( 1<<7 ) // Dashing flag
-#define PMF_SPECIAL_HELD    ( 1<<8 ) // Special flag
+#define PMF_DASH_HELD		( 1<<8 ) // Special flag
 #define PMF_WALLJUMPING	    ( 1<<9 ) // WJ starting flag
 #define PMF_DOUBLEJUMPED    ( 1<<10 ) // DJ stat flag
 #define PMF_JUMPPAD_TIME    ( 1<<11 )    // temporarily disables fall damage

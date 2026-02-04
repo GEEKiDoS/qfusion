@@ -792,9 +792,6 @@ void G_FreeEdict( edict_t *ed )
 
 	GClip_UnlinkEntity( ed );   // unlink from world
 
-	AI_RemoveGoalEntity( ed );
-	G_FreeAI( ed );
-
 	G_asReleaseEntityBehaviors( ed );
 
 	memset( ed, 0, sizeof( *ed ) );
@@ -1057,9 +1054,6 @@ void G_CallTouch( edict_t *self, edict_t *other, cplane_t *plane, int surfFlags 
 		touched = true;
 		self->touch( self, other, plane, surfFlags );
 	}
-
-	if( touched && other->ai )
-		AI_TouchedEntity( other, self );
 }
 
 /*
@@ -1797,13 +1791,7 @@ bool G_EntNotBlocked( edict_t *viewer, edict_t *targ )
 */
 int G_SolidMaskForEnt( edict_t *ent )
 {
-	int solidmask;
-	if( AI_GetType( ent->ai ) == AI_ISMONSTER )
-		solidmask = MASK_MONSTERSOLID;
-	else
-		solidmask = ent->r.clipmask ? ent->r.clipmask : MASK_SOLID;
-
-	return solidmask;
+	return ent->r.clipmask ? ent->r.clipmask : MASK_SOLID;
 }
 
 /*

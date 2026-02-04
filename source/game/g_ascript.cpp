@@ -606,11 +606,9 @@ static const asEnumVal_t asMiscelaneaEnumVals[] =
 static const asEnumVal_t asButtonEnumVals[] =
 {
     ASLIB_ENUM_VAL( BUTTON_ATTACK ),
-    ASLIB_ENUM_VAL( BUTTON_WALK ),
-    ASLIB_ENUM_VAL( BUTTON_SPECIAL ),
+    ASLIB_ENUM_VAL( BUTTON_ATTACK2 ),
+    ASLIB_ENUM_VAL( BUTTON_DASH ),
     ASLIB_ENUM_VAL( BUTTON_USE ),
-    ASLIB_ENUM_VAL( BUTTON_ZOOM ),
-    ASLIB_ENUM_VAL( BUTTON_BUSYICON ),
     ASLIB_ENUM_VAL( BUTTON_ANY ),
 
     ASLIB_ENUM_VAL_NULL
@@ -1233,10 +1231,6 @@ static const asProperty_t gametypedescr_Properties[] =
 	{ ASLIB_PROPERTY_DECL(bool, customDeadBodyCam), ASLIB_FOFFSET(gametype_descriptor_t, customDeadBodyCam) },
 	{ ASLIB_PROPERTY_DECL(bool, removeInactivePlayers), ASLIB_FOFFSET(gametype_descriptor_t, removeInactivePlayers) },
 	{ ASLIB_PROPERTY_DECL(bool, mmCompatible), ASLIB_FOFFSET(gametype_descriptor_t, mmCompatible) },
-	{ ASLIB_PROPERTY_DECL(uint, numBots), ASLIB_FOFFSET(gametype_descriptor_t, numBots) },
-	{ ASLIB_PROPERTY_DECL(bool, dummyBots), ASLIB_FOFFSET(gametype_descriptor_t, dummyBots) },
-	{ ASLIB_PROPERTY_DECL(uint, forceTeamHumans), ASLIB_FOFFSET(gametype_descriptor_t, forceTeamHumans) },
-	{ ASLIB_PROPERTY_DECL(uint, forceTeamBots), ASLIB_FOFFSET(gametype_descriptor_t, forceTeamBots) },
 	{ ASLIB_PROPERTY_DECL(bool, disableObituaries), ASLIB_FOFFSET(gametype_descriptor_t, disableObituaries) },
 
 	ASLIB_PROPERTY_NULL
@@ -1496,54 +1490,6 @@ static const asClassDescriptor_t asScoreStatsClassDescriptor =
 
 //=======================================================================
 
-// CLASS: Bot
-
-static const asFuncdef_t asbot_Funcdefs[] =
-{
-	ASLIB_FUNCDEF_NULL
-};
-
-static const asBehavior_t asbot_ObjectBehaviors[] =
-{
-	ASLIB_BEHAVIOR_NULL
-};
-
-static const asMethod_t asbot_Methods[] =
-{
-	{ ASLIB_FUNCTION_DECL(void, clearGoalWeights, ()), asFUNCTION(AI_ClearWeights), asCALL_CDECL_OBJFIRST },
-	{ ASLIB_FUNCTION_DECL(void, resetGoalWeights, ()), asFUNCTION(AI_ResetWeights), asCALL_CDECL_OBJFIRST },
-	{ ASLIB_FUNCTION_DECL(void, setGoalWeight, ( int i, float weight )), asFUNCTION(AI_SetGoalWeight), asCALL_CDECL_OBJFIRST },
-	{ ASLIB_FUNCTION_DECL(float, getItemWeight, ( const Item @item ) const), asFUNCTION(AI_GetItemWeight), asCALL_CDECL_OBJFIRST },
-
-	// character
-	{ ASLIB_FUNCTION_DECL(float, get_reactionTime, () const), asFUNCTION(AI_GetCharacterReactionTime), asCALL_CDECL_OBJFIRST },
-	{ ASLIB_FUNCTION_DECL(float, get_offensiveness, () const), asFUNCTION(AI_GetCharacterOffensiveness), asCALL_CDECL_OBJFIRST },
-	{ ASLIB_FUNCTION_DECL(float, get_campiness, () const), asFUNCTION(AI_GetCharacterCampiness), asCALL_CDECL_OBJFIRST },
-	{ ASLIB_FUNCTION_DECL(float, get_firerate, () const), asFUNCTION(AI_GetCharacterFirerate), asCALL_CDECL_OBJFIRST },
-
-	ASLIB_METHOD_NULL
-};
-
-static const asProperty_t asbot_Properties[] =
-{
-	ASLIB_PROPERTY_NULL
-};
-
-static const asClassDescriptor_t asBotClassDescriptor =
-{
-	"Bot",						/* name */
-	asOBJ_REF|asOBJ_NOCOUNT,	/* object type flags */
-	ai_handle_size,				/* size */
-	asbot_Funcdefs,				/* funcdefs */
-	asbot_ObjectBehaviors,		/* object behaviors */
-	asbot_Methods,				/* methods */
-	asbot_Properties,			/* properties */
-
-	NULL, NULL					/* string factory hack */
-};
-
-//=======================================================================
-
 // CLASS: Client
 static int objectGameClient_PlayerNum( gclient_t *self )
 {
@@ -1570,23 +1516,7 @@ static bool objectGameClient_isBot( gclient_t *self )
 		return false;
 
 	ent = PLAYERENT( playerNum );
-	return ( ( ent->r.svflags & SVF_FAKECLIENT ) && AI_GetType( ent->ai ) == AI_ISBOT );
-}
-
-static ai_handle_t *objectGameClient_getBot( gclient_t *self )
-{
-	int playerNum;
-	const edict_t *ent;
-
-	playerNum = objectGameClient_PlayerNum( self );
-	if( playerNum < 0 && playerNum >= gs.maxclients )
-		return NULL;
-
-	ent = PLAYERENT( playerNum );
-	if( !( ent->r.svflags & SVF_FAKECLIENT ) || AI_GetType( ent->ai ) != AI_ISBOT )
-		return NULL;
-
-	return ent->ai;
+	return ( ( ent->r.svflags & SVF_FAKECLIENT ) );
 }
 
 static int objectGameClient_ClientState( gclient_t *self )
@@ -2012,7 +1942,6 @@ static const asMethod_t gameclient_Methods[] =
 	{ ASLIB_FUNCTION_DECL(int, get_playerNum, () const), asFUNCTION(objectGameClient_PlayerNum), asCALL_CDECL_OBJLAST },
 	{ ASLIB_FUNCTION_DECL(bool, isReady, () const), asFUNCTION(objectGameClient_isReady), asCALL_CDECL_OBJLAST },
 	{ ASLIB_FUNCTION_DECL(bool, isBot, () const), asFUNCTION(objectGameClient_isBot), asCALL_CDECL_OBJLAST },
-	{ ASLIB_FUNCTION_DECL(Bot @, getBot, () const), asFUNCTION(objectGameClient_getBot), asCALL_CDECL_OBJLAST },
 	{ ASLIB_FUNCTION_DECL(int, state, () const), asFUNCTION(objectGameClient_ClientState), asCALL_CDECL_OBJLAST },
 	{ ASLIB_FUNCTION_DECL(void, respawn, ( bool ghost )), asFUNCTION(objectGameClient_Respawn), asCALL_CDECL_OBJLAST },
 	{ ASLIB_FUNCTION_DECL(void, clearPlayerStateEvents, ()), asFUNCTION(objectGameClient_ClearPlayerStateEvents), asCALL_CDECL_OBJLAST },
@@ -2663,7 +2592,6 @@ static const asClassDescriptor_t * const asClassesDescriptors[] =
 	&asGametypeClassDescriptor,
 	&asTeamListClassDescriptor,
 	&asScoreStatsClassDescriptor,
-	&asBotClassDescriptor,
 	&asGameClientDescriptor,
 	&asGameEntityClassDescriptor,
 
@@ -3470,30 +3398,6 @@ static const asglobfuncs_t asGlobFuncs[] =
 
 // ============================================================================
 
-static void asFunc_AI_AddGoal( edict_t *self, bool customReach )
-{
-	if( customReach )
-		AI_AddGoalEntityCustom( self );
-	else
-		AI_AddGoalEntity( self );
-}
-
-static const asglobfuncs_t asAIGlobFuncs[] =
-{
-	{ "int GetRootGoal()", asFUNCTION(AI_GetRootGoalEnt), NULL },
-	{ "int GetNextGoal( int index )", asFUNCTION(AI_GetNextGoalEnt), NULL },
-	{ "Entity @GetGoalEntity( int index )", asFUNCTION(AI_GetGoalEntity), NULL },
-
-	{ "void AddGoal( Entity @ent )", asFUNCTION(AI_AddGoalEntity), NULL },
-	{ "void AddGoal( Entity @ent, bool customReach )", asFUNCTION(asFunc_AI_AddGoal), NULL },
-	{ "void RemoveGoal( Entity @ent )", asFUNCTION(AI_RemoveGoalEntity), NULL },
-	{ "void ReachedGoal( Entity @ent )", asFUNCTION(AI_ReachedEntity), NULL },
-
-	{ NULL }
-};
-
-// ============================================================================
-
 static const asglobproperties_t asGlobProps[] =
 {
 	{ "const uint levelTime", &level.time },
@@ -4044,7 +3948,6 @@ static void G_InitializeGameModuleSyntax( asIScriptEngine *asEngine )
 
 	// register global functions
 	G_asRegisterGlobalFunctions( asEngine, asGlobFuncs, "" );
-	G_asRegisterGlobalFunctions( asEngine, asAIGlobFuncs, "AI" );
 
 	// register global properties
 	G_asRegisterGlobalProperties( asEngine, asGlobProps, "" );

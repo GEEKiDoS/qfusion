@@ -1011,8 +1011,6 @@ void G_AwardFairPlay( edict_t *ent );
 
 //============================================================================
 
-#include "ai/ai.h"
-
 typedef struct
 {
 	int radius;
@@ -1430,8 +1428,6 @@ struct edict_s
 
 	// common data blocks
 	moveinfo_t moveinfo;        // func movers movement
-
-	ai_handle_t *ai;     //MbotGame
 
 	snap_edict_t snap; // information that is cleared each frame snap
 

@@ -94,16 +94,6 @@ void TVM_ClientEndSnapFrame( edict_t *ent )
 */
 bool TVM_ClientIsZoom( edict_t *ent )
 {
-	assert( ent && ent->local && ent->r.client );
-
-#if 0
-	if( ent->r.client->ps.stats[STAT_HEALTH] <= 0 )
-		return false;
-#endif
-
-	if( ent->snap.buttons & BUTTON_ZOOM )
-		return true;
-
 	return false;
 }
 
@@ -307,7 +297,7 @@ static void TVM_ClientMakePlrkeys( gclient_t *client, usercmd_t *ucmd )
 		client->plrkeys |= ( 1 << KEYICON_CROUCH );
 	if( ucmd->buttons & BUTTON_ATTACK )
 		client->plrkeys |= ( 1 << KEYICON_FIRE );
-	if( ucmd->buttons & BUTTON_SPECIAL )
+	if( ucmd->buttons & BUTTON_DASH )
 		client->plrkeys |= ( 1 << KEYICON_SPECIAL );
 }
 

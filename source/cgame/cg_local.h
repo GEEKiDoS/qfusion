@@ -1039,6 +1039,7 @@ extern cvar_t *cg_colorCorrection;
 
 // Viewport bobbing on fall/high jumps
 extern cvar_t *cg_viewBob;
+extern cvar_t *cg_dashRollAmount;
 
 void CG_ResetKickAngles( void );
 void CG_ResetColorBlend( void );

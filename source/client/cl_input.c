@@ -352,13 +352,10 @@ Key_Event (int key, bool down, unsigned time);
 ===============================================================================
 */
 
-kbutton_t in_klook;
-kbutton_t in_left, in_right, in_forward, in_back;
-kbutton_t in_lookup, in_lookdown, in_moveleft, in_moveright;
-kbutton_t in_strafe, in_speed, in_use, in_attack;
-kbutton_t in_up, in_down;
-kbutton_t in_special;
-kbutton_t in_zoom;
+kbutton_t in_forward, in_back;
+kbutton_t in_moveleft, in_moveright;
+kbutton_t in_use, in_attack, in_attack2;
+kbutton_t in_dash;
 
 /*
 * KeyDown
@@ -442,40 +439,22 @@ static void KeyUp( kbutton_t *b )
 	b->state |= 4;  // impulse up
 }
 
-static void IN_KLookDown( void ) { KeyDown( &in_klook ); }
-static void IN_KLookUp( void ) { KeyUp( &in_klook ); }
-static void IN_UpDown( void ) { KeyDown( &in_up ); }
-static void IN_UpUp( void ) { KeyUp( &in_up ); }
-static void IN_DownDown( void ) { KeyDown( &in_down ); }
-static void IN_DownUp( void ) { KeyUp( &in_down ); }
-static void IN_LeftDown( void ) { KeyDown( &in_left ); }
-static void IN_LeftUp( void ) { KeyUp( &in_left ); }
-static void IN_RightDown( void ) { KeyDown( &in_right ); }
-static void IN_RightUp( void ) { KeyUp( &in_right ); }
 static void IN_ForwardDown( void ) { KeyDown( &in_forward ); }
 static void IN_ForwardUp( void ) { KeyUp( &in_forward ); }
 static void IN_BackDown( void ) { KeyDown( &in_back ); }
 static void IN_BackUp( void ) { KeyUp( &in_back ); }
-static void IN_LookupDown( void ) { KeyDown( &in_lookup ); }
-static void IN_LookupUp( void ) { KeyUp( &in_lookup ); }
-static void IN_LookdownDown( void ) { KeyDown( &in_lookdown ); }
-static void IN_LookdownUp( void ) { KeyUp( &in_lookdown ); }
 static void IN_MoveleftDown( void ) { KeyDown( &in_moveleft ); }
 static void IN_MoveleftUp( void ) { KeyUp( &in_moveleft ); }
 static void IN_MoverightDown( void ) { KeyDown( &in_moveright ); }
 static void IN_MoverightUp( void ) { KeyUp( &in_moveright ); }
-static void IN_SpeedDown( void ) { KeyDown( &in_speed ); }
-static void IN_SpeedUp( void ) { KeyUp( &in_speed ); }
-static void IN_StrafeDown( void ) { KeyDown( &in_strafe ); }
-static void IN_StrafeUp( void ) { KeyUp( &in_strafe ); }
 static void IN_AttackDown( void ) { KeyDown( &in_attack ); }
 static void IN_AttackUp( void ) { KeyUp( &in_attack ); }
+static void IN_Attack2Down( void ) { KeyDown( &in_attack2 ); }
+static void IN_Attack2Up( void ) { KeyUp( &in_attack2 ); }
 static void IN_UseDown( void ) { KeyDown( &in_use ); }
 static void IN_UseUp( void ) { KeyUp( &in_use ); }
-static void IN_SpecialDown( void ) { KeyDown( &in_special ); }
-static void IN_SpecialUp( void ) { KeyUp( &in_special ); }
-static void IN_ZoomDown( void ) { KeyDown( &in_zoom ); }
-static void IN_ZoomUp( void ) { KeyUp( &in_zoom ); }
+static void IN_DashDown( void ) { KeyDown( &in_dash ); }
+static void IN_DashUp( void ) { KeyUp( &in_dash ); }
 
 static void IN_VoiceRecordDown( void )
 {
@@ -575,7 +554,7 @@ cvar_t *cl_anglespeedkey;
 /*
 * CL_AddButtonBits
 */
-static void CL_AddButtonBits( uint8_t *buttons )
+static void CL_AddButtonBits( int *buttons )
 {
 	// figure button bits
 
@@ -583,9 +562,13 @@ static void CL_AddButtonBits( uint8_t *buttons )
 		*buttons |= BUTTON_ATTACK;
 	in_attack.state &= ~2;
 
-	if( in_special.state & 3 )
-		*buttons |= BUTTON_SPECIAL;
-	in_special.state &= ~2;
+	if( in_attack2.state & 3 )
+		*buttons |= BUTTON_ATTACK2;
+	in_attack2.state &= ~2;
+
+	if( in_dash.state & 3 )
+		*buttons |= BUTTON_DASH;
+	in_dash.state &= ~2;
 
 	if( in_use.state & 3 )
 		*buttons |= BUTTON_USE;
@@ -594,17 +577,6 @@ static void CL_AddButtonBits( uint8_t *buttons )
 	// we use this bit for a different flag, sorry!
 	if( anykeydown && cls.key_dest == key_game )
 		*buttons |= BUTTON_ANY;
-
-	if( ( in_speed.state & 1 ) ^ !cl_run->integer )
-		*buttons |= BUTTON_WALK;
-
-	// add chat/console/ui icon as a button
-	if( cls.key_dest != key_game )
-		*buttons |= BUTTON_BUSYICON;
-
-	if( in_zoom.state & 3 )
-		*buttons |= BUTTON_ZOOM;
-	in_zoom.state &= ~2;
 
 	if( cls.key_dest == key_game )
 		*buttons |= CL_GameModule_GetButtonBits();
@@ -615,26 +587,6 @@ static void CL_AddButtonBits( uint8_t *buttons )
 */
 static void CL_AddAnglesFromKeys( int frametime )
 {
-	float speed;
-
-	if( in_speed.state & 1 )
-		speed = ( (float)frametime * 0.001f ) * cl_anglespeedkey->value;
-	else
-		speed = (float)frametime * 0.001f;
-
-	if( !( in_strafe.state & 1 ) )
-	{
-		cl.viewangles[YAW] -= speed * cl_yawspeed->value * CL_KeyState( &in_right );
-		cl.viewangles[YAW] += speed * cl_yawspeed->value * CL_KeyState( &in_left );
-	}
-	if( in_klook.state & 1 )
-	{
-		cl.viewangles[PITCH] -= speed * cl_pitchspeed->value * CL_KeyState( &in_forward );
-		cl.viewangles[PITCH] += speed * cl_pitchspeed->value * CL_KeyState( &in_back );
-	}
-
-	cl.viewangles[PITCH] -= speed * cl_pitchspeed->value * CL_KeyState( &in_lookup );
-	cl.viewangles[PITCH] += speed * cl_pitchspeed->value * CL_KeyState( &in_lookdown );
 }
 
 /*
@@ -642,23 +594,10 @@ static void CL_AddAnglesFromKeys( int frametime )
 */
 static void CL_AddMovementFromKeys( vec3_t movement )
 {
-	if( in_strafe.state & 1 )
-	{
-		movement[0] += ( float )CL_KeyState( &in_right );
-		movement[0] -= ( float )CL_KeyState( &in_left );
-	}
-
 	movement[0] += ( float )CL_KeyState( &in_moveright );
 	movement[0] -= ( float )CL_KeyState( &in_moveleft );
-
-	movement[2] += ( float )CL_KeyState( &in_up );
-	movement[2] -= ( float )CL_KeyState( &in_down );
-
-	if( !( in_klook.state & 1 ) )
-	{
-		movement[1] += ( float )CL_KeyState( &in_forward );
-		movement[1] -= ( float )CL_KeyState( &in_back );
-	}
+	movement[1] += ( float )CL_KeyState( &in_forward );
+	movement[1] -= ( float )CL_KeyState( &in_back );
 }
 
 /*
@@ -763,44 +702,27 @@ void CL_InitInput( void )
 	IN_Init();
 
 	Cmd_AddCommand( "centerview", IN_CenterView );
-	Cmd_AddCommand( "+moveup", IN_UpDown );
-	Cmd_AddCommand( "-moveup", IN_UpUp );
-	Cmd_AddCommand( "+movedown", IN_DownDown );
-	Cmd_AddCommand( "-movedown", IN_DownUp );
-	Cmd_AddCommand( "+left", IN_LeftDown );
-	Cmd_AddCommand( "-left", IN_LeftUp );
-	Cmd_AddCommand( "+right", IN_RightDown );
-	Cmd_AddCommand( "-right", IN_RightUp );
+
+	// actually no jumping in this game.
+	Cmd_AddCommand( "+left", IN_MoveleftDown );
+	Cmd_AddCommand( "-left", IN_MoveleftUp );
+	Cmd_AddCommand( "+right", IN_MoverightDown );
+	Cmd_AddCommand( "-right", IN_MoverightUp );
 	Cmd_AddCommand( "+forward", IN_ForwardDown );
 	Cmd_AddCommand( "-forward", IN_ForwardUp );
 	Cmd_AddCommand( "+back", IN_BackDown );
 	Cmd_AddCommand( "-back", IN_BackUp );
-	Cmd_AddCommand( "+lookup", IN_LookupDown );
-	Cmd_AddCommand( "-lookup", IN_LookupUp );
-	Cmd_AddCommand( "+lookdown", IN_LookdownDown );
-	Cmd_AddCommand( "-lookdown", IN_LookdownUp );
-	Cmd_AddCommand( "+strafe", IN_StrafeDown );
-	Cmd_AddCommand( "-strafe", IN_StrafeUp );
-	Cmd_AddCommand( "+moveleft", IN_MoveleftDown );
-	Cmd_AddCommand( "-moveleft", IN_MoveleftUp );
-	Cmd_AddCommand( "+moveright", IN_MoverightDown );
-	Cmd_AddCommand( "-moveright", IN_MoverightUp );
-	Cmd_AddCommand( "+speed", IN_SpeedDown );
-	Cmd_AddCommand( "-speed", IN_SpeedUp );
+
 	Cmd_AddCommand( "+attack", IN_AttackDown );
 	Cmd_AddCommand( "-attack", IN_AttackUp );
+	Cmd_AddCommand( "+attack2", IN_Attack2Down );
+	Cmd_AddCommand( "-attack2", IN_Attack2Up );
+
 	Cmd_AddCommand( "+use", IN_UseDown );
 	Cmd_AddCommand( "-use", IN_UseUp );
-	Cmd_AddCommand( "+klook", IN_KLookDown );
-	Cmd_AddCommand( "-klook", IN_KLookUp );
-	// wsw
-	Cmd_AddCommand( "+special", IN_SpecialDown );
-	Cmd_AddCommand( "-special", IN_SpecialUp );
-	Cmd_AddCommand( "+zoom", IN_ZoomDown );
-	Cmd_AddCommand( "-zoom", IN_ZoomUp );
 
-	Cmd_AddCommand( "+voicerecord", IN_VoiceRecordDown );
-	Cmd_AddCommand( "-voicerecord", IN_VoiceRecordUp );
+	Cmd_AddCommand( "+dash", IN_DashDown );
+	Cmd_AddCommand( "-dash", IN_DashUp );
 
 	cl_ucmdMaxResend =	Cvar_Get( "cl_ucmdMaxResend", "3", CVAR_ARCHIVE );
 	cl_ucmdFPS =		Cvar_Get( "cl_ucmdFPS", "62", CVAR_DEVELOPER );

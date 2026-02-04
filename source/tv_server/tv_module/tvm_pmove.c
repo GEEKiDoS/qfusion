@@ -68,7 +68,7 @@ static void TVM_PM_FlyMove( void )
 
 	maxspeed = pml.maxPlayerSpeed * 1.5;
 
-	if( pm->cmd.buttons & BUTTON_SPECIAL )
+	if( pm->cmd.buttons & BUTTON_DASH )
 		maxspeed *= 2;
 
 	// friction
@@ -98,7 +98,7 @@ static void TVM_PM_FlyMove( void )
 	fmove = pml.forwardPush;
 	smove = pml.sidePush;
 
-	if( pm->cmd.buttons & BUTTON_SPECIAL )
+	if( pm->cmd.buttons & BUTTON_DASH )
 	{
 		fmove *= 2;
 		smove *= 2;

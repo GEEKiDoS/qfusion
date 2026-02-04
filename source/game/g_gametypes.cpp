@@ -424,12 +424,6 @@ static void G_Gametype_GENERIC_Init( void )
 	level.gametype.canShowMinimap = false;
 	level.gametype.teamOnlyMinimap = true;
 	
-	level.gametype.numBots = 0;
-	level.gametype.dummyBots = false;
-
-	level.gametype.forceTeamHumans = TEAM_SPECTATOR;
-	level.gametype.forceTeamBots = TEAM_SPECTATOR;
-
 	level.gametype.mmCompatible = false;
 
 	if( GS_Instagib() )
@@ -1619,55 +1613,6 @@ static bool G_EachNewSecond( void )
 }
 
 /*
-* G_CheckNumBots
-*/
-static void G_CheckNumBots( void )
-{
-	edict_t	*ent;
-	int desiredNumBots;
-
-	if( level.spawnedTimeStamp + 5000 > game.realtime )
-		return;
-
-	// check sanity of g_numbots
-	if( g_numbots->integer < 0 )
-		trap_Cvar_Set( "g_numbots", "0" );
-
-	if( g_numbots->integer > gs.maxclients )
-		trap_Cvar_Set( "g_numbots", va( "%i", gs.maxclients ) );
-
-	if( level.gametype.numBots > gs.maxclients )
-		level.gametype.numBots = gs.maxclients;
-
-	desiredNumBots = level.gametype.numBots ? level.gametype.numBots : g_numbots->integer;
-
-	if( desiredNumBots < game.numBots )
-	{
-		// kick one bot
-		for( ent = game.edicts + gs.maxclients; PLAYERNUM( ent ) >= 0; ent-- )
-		{
-			if( !ent->r.inuse || !( ent->r.svflags & SVF_FAKECLIENT ) )
-				continue;
-			if( AI_GetType( ent->ai ) == AI_ISBOT )
-			{
-				trap_DropClient( ent, DROP_TYPE_GENERAL, NULL );
-				break;
-			}
-		}
-		return;
-	}
-
-	if( desiredNumBots > game.numBots )
-	{                                     // add a bot if there is room
-		for( ent = game.edicts + 1; PLAYERNUM( ent ) < gs.maxclients && game.numBots < desiredNumBots; ent++ )
-		{
-			if( !ent->r.inuse && trap_GetClientState( PLAYERNUM( ent ) ) == CS_FREE )
-				BOT_SpawnBot( NULL );
-		}
-	}
-}
-
-/*
 * G_TickOutPowerUps
 */
 static void G_TickOutPowerUps( void )
@@ -1805,7 +1750,6 @@ void G_RunGametype( void )
 
 	if( G_EachNewSecond() )
 	{
-		G_CheckNumBots();
 		G_TickOutPowerUps();
 	}
 
@@ -1903,12 +1847,6 @@ void G_Gametype_SetDefaults( void )
 	level.gametype.disableObituaries = false;
 
     level.gametype.spawnpointRadius = 64;
-
-	level.gametype.numBots = 0;
-	level.gametype.dummyBots = false;
-
-	level.gametype.forceTeamHumans = TEAM_SPECTATOR;
-	level.gametype.forceTeamBots = TEAM_SPECTATOR;
 
     level.gametype.mmCompatible = false;
 }

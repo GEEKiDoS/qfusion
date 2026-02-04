@@ -573,15 +573,6 @@ void G_AddServerCommands( void )
 	trap_Cmd_AddCommand( "mute",  Cmd_Mute_f );
 	trap_Cmd_AddCommand( "removemute",  Cmd_RemoveMute_f );
 
-	// MBotGame: Add AI related commands
-	trap_Cmd_AddCommand( "botdebug", AIDebug_ToogleBotDebug );
-	trap_Cmd_AddCommand( "editnodes", AITools_InitEditnodes );
-	trap_Cmd_AddCommand( "makenodes", AITools_InitMakenodes );
-	trap_Cmd_AddCommand( "savenodes", Cmd_SaveNodes_f );
-	trap_Cmd_AddCommand( "addnode", AITools_AddNode_Cmd );
-	trap_Cmd_AddCommand( "dropnode", AITools_AddNode_Cmd );
-	trap_Cmd_AddCommand( "addbotroam", AITools_AddBotRoamNode_Cmd );
-
 	trap_Cmd_AddCommand( "dumpASapi", G_asDumpAPI_f );
 
 	trap_Cmd_AddCommand( "listratings", G_ListRatings_f );
