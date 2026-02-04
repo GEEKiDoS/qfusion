@@ -1799,7 +1799,7 @@ void G_Gametype_GenerateGametypesList( void )
 	scriptsList = G_AllocCreateNamesList( "progs/gametypes", GAMETYPE_PROJECT_EXTENSION, CHAR_GAMETYPE_SEPARATOR );
 	if( !scriptsList )
 	{
-		trap_Cvar_ForceSet( "g_gametypes_list", "dm;" );
+		trap_Cvar_ForceSet( "g_gametypes_list", "hachimi;" );
 		return;
 	}
 
@@ -1868,7 +1868,7 @@ void G_Gametype_Init( void )
 	if( !g_gametype ) // first time initialized
 		changed = true;
 
-	g_gametype = trap_Cvar_Get( "g_gametype", "dm", CVAR_SERVERINFO|CVAR_ARCHIVE|CVAR_LATCH );
+	g_gametype = trap_Cvar_Get( "g_gametype", "hachimi", CVAR_SERVERINFO|CVAR_ARCHIVE|CVAR_LATCH );
 
 	//get the match cvars too
 	g_warmup_timelimit = trap_Cvar_Get( "g_warmup_timelimit", "5", CVAR_ARCHIVE );
@@ -1906,8 +1906,8 @@ void G_Gametype_Init( void )
 
 	if( !G_Gametype_Exists( g_gametype->string ) )
 	{
-		G_Printf( "G_Gametype: Wrong value: '%s'. Setting up with default (dm)\n", g_gametype->string );
-		trap_Cvar_ForceSet( "g_gametype", "dm" );
+		G_Printf( "G_Gametype: Wrong value: '%s'. Setting up with default (hachimi)\n", g_gametype->string );
+		trap_Cvar_ForceSet( "g_gametype", "hachimi" );
 		changed = true;
 	}
 

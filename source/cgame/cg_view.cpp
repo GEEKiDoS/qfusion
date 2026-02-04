@@ -849,12 +849,17 @@ static void CG_CalcDashCameraRoll( cg_viewdef_t *view )
 
 	vec3_t right;
 	AngleVectors( view->angles, NULL, right, NULL );
-	float dashDir = DotProduct( view->velocity, right ) > 0 ? 1.0f : -1.0f;
+	float moveSpeed = DotProduct( pm->velocity, right );
+	short dashDir = pm->stats[PM_STAT_DASHDIR];
 
-	float amount = (200 - pm->stats[PM_STAT_DASHTIME]) / 200.0f;
+	if( ( moveSpeed > 0 ) == ( dashDir > 0 ) ) {
+		float progress = ( DEFAULT_DASHDURING - pm->stats[PM_STAT_DASHTIME] ) / DEFAULT_DASHDURING;
+		float amount = 1.0f - fabsf( ( progress - 0.5f ) * 2 );
 
-	view->angles[ROLL] = -dashDir * amount * cg_dashRollAmount->value;
-	module_Printf( "dash amount: %f\n", amount );
+		amount *= min(1.0f, fabsf( moveSpeed ) / DEFAULT_DASHSPEED);
+
+		view->angles[ROLL] = -dashDir * amount * cg_dashRollAmount->value;
+	}
 }
 
 /*

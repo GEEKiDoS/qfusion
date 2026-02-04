@@ -74,6 +74,8 @@ extern vec3_t item_box_maxs;
 #define PROJECTILE_PRESTEP 100
 #define ELECTROBOLT_RANGE 9001
 
+#define DEFAULT_DASHDURING 250.0f
+
 #define	MIN_FOV				60
 #define MAX_FOV				140
 #define DEFAULT_FOV			100

@@ -1100,11 +1100,15 @@ static void PM_CheckDash( void )
 		if( pm->playerState->pmove.pm_flags & PMF_DASH_HELD )
 			return;
 
+		if( pm->playerState->pmove.pm_flags & PMF_DASHING )
+			return;
+
 		pm->playerState->pmove.pm_flags &= ~PMF_JUMPPAD_TIME;
 
 		pm->playerState->pmove.pm_flags |= PMF_DASHING;
 		pm->playerState->pmove.pm_flags |= PMF_DASH_HELD;
 		pm->playerState->pmove.stats[PM_STAT_DASHTIME] = 0;
+		pm->playerState->pmove.stats[PM_STAT_DASHDIR] = pm->cmd.sidemove > 0 ? 1 : -1;
 
 		// clip against the ground when jumping if moving that direction
 		if( pml.groundplane.normal[2] > 0 && pml.velocity[2] < 0 && DotProduct2D( pml.groundplane.normal, pml.velocity ) > 0 )
@@ -1701,7 +1705,7 @@ void Pmove( pmove_t *pmove )
 
 		if( pm->playerState->pmove.pm_flags & PMF_DASHING ) {
 			pm->playerState->pmove.stats[PM_STAT_DASHTIME] += pm->cmd.msec;
-			if( pm->playerState->pmove.stats[PM_STAT_DASHTIME] > 200 ) {
+			if( pm->playerState->pmove.stats[PM_STAT_DASHTIME] > DEFAULT_DASHDURING ) {
 				pm->playerState->pmove.pm_flags &= ~( PMF_DASHING );
 				pm->playerState->pmove.stats[PM_STAT_DASHTIME] = 0;
 			}
