@@ -33,10 +33,14 @@ void main(void)
 
     color = ACESFilm(color);
 
-    // vignette
-    color *= min(1.0, pow(1.0 - centerDist, 2.2));
-
     // linear to srgb
     color = pow(color, vec3(0.4545));
-    qf_FragColor = vec4(color, 1.0);
+
+    // vignette
+    vec2 vigUv = v_TexCoord.xy * (1.0 - v_TexCoord.yx);
+    float vig = vigUv.x * vigUv.y * 15.0;
+    vig = min(1.0, pow(vig, 0.3) + 0.15); 
+    color *= vig;
+
+    qf_FragColor = vec4(min(vec3(1.0), color * 1.1), 1.0);
 }

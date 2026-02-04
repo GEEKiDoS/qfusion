@@ -571,6 +571,7 @@ typedef struct
 	unsigned int lastCrossWeapons; // bitfield containing the last weapons selected from the cross
 
 	mat3_t autorotateAxis;
+	mat3_t autorotateAxisLast;
 
 	float lerpfrac;                     // between oldframe and frame
 	float xerpTime;

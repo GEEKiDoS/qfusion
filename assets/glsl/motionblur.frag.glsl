@@ -13,7 +13,7 @@ void main(void)
 {
     float random = fract(sin(dot(v_TexCoord, vec2(12.9898, 78.233))) * 43758.5453);
     
-    vec2 velocity = -texture2D(u_MotionVectorTexture, v_TexCoord).rg;
+    vec2 velocity = -texture2D(u_MotionVectorTexture, v_TexCoord).rg * 0.3;
     vec2 startUV = v_TexCoord - velocity * 0.5;
     vec2 stepLen = velocity / float(MOTION_BLUR_SAMPLES);
     

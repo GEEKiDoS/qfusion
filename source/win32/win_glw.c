@@ -383,7 +383,7 @@ static int GLimp_InitGL( void )
 		0,                      // shift bit ignored
 		0,                      // no accumulation buffer
 		0, 0, 0, 0,             // accum bits ignored
-		24,                     // 32-bit z-buffer
+		32,                     // 32-bit z-buffer
 		0,                      // no stencil buffer
 		0,                      // no auxiliary buffer
 		PFD_MAIN_PLANE,         // main layer

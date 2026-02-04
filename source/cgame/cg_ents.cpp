@@ -641,10 +641,10 @@ static void CG_AddLinkedModel( centity_t *cent )
 			CG_PlaceModelOnTag( &ent, &cent->ent, &tag );
 	}
 
-	AnglesToAxis( cent->prev.angles, ent.lastAxis );
-	memcpy( ent.lastOrigin, cent->prev.origin, sizeof( vec3_t ) );
-	ent.lastScale = 1.0f;
-	ent.haveLastInfo = true;
+	Matrix3_Copy( cent->ent.lastAxis, ent.lastAxis );
+	VectorCopy( cent->ent.lastOrigin, ent.lastOrigin );
+	ent.lastScale = cent->ent.lastScale;
+	ent.haveLastInfo = cent->ent.haveLastInfo;
 
 	CG_AddEntityToScene( &ent );
 	CG_AddShellEffects( &ent, cent->effects );
@@ -834,13 +834,6 @@ static void CG_AddGenericEnt( centity_t *cent )
 	if( !cent->current.modelindex && !( cent->effects & EF_FLAG_TRAIL ) )
 		return;
 
-	// bobbing & auto-rotation
-	if( cent->effects & EF_ROTATE_AND_BOB )
-	{
-		CG_EntAddBobEffect( cent );
-		Matrix3_Copy( cg.autorotateAxis, cent->ent.axis );
-	}
-
 	if( cent->effects & EF_TEAMCOLOR_TRANSITION )
 		CG_EntAddTeamColorTransitionEffect( cent );
 
@@ -922,9 +915,29 @@ static void CG_AddGenericEnt( centity_t *cent )
 	if( !cent->current.modelindex )
 		return;
 
-	AnglesToAxis( cent->prev.angles, cent->ent.lastAxis );
 	memcpy( cent->ent.lastOrigin, cent->prev.origin, sizeof( vec3_t ) );
-	cent->ent.lastScale = 1.0f;
+
+	// TBI: apply delta from current state origin and real origin to last origin
+	// for fixing motion vector issue
+	vec3_t delta;
+	VectorSubtract( cent->ent.origin, cent->current.origin, delta );
+	VectorAdd( cent->ent.lastOrigin, delta, cent->ent.lastOrigin );
+
+	// bobbing & auto-rotation
+	if( cent->effects & EF_ROTATE_AND_BOB ) {
+		CG_EntAddBobEffect( cent );
+		Matrix3_Copy( cg.autorotateAxis, cent->ent.axis );
+
+		float scale = 0.005f + cent->prev.number * 0.00001f;
+		float bob = 4 + cosf( ( ( cg.time - cg.frameTime * 1000 ) + 1000 ) * scale ) * 4;
+
+		cent->ent.lastOrigin[2] += bob;
+		Matrix3_Copy( cg.autorotateAxisLast, cent->ent.lastAxis );
+	} else {
+		AnglesToAxis( cent->prev.angles, cent->ent.lastAxis );
+	}
+
+	cent->ent.lastScale = cent->ent.scale;
 	cent->ent.haveLastInfo = true;
 
 	CG_AddEntityToScene( &cent->ent );
@@ -1855,6 +1868,7 @@ void CG_AddEntities( void )
 	bool canLight;
 
 	// bonus items rotate at a fixed rate
+	Matrix3_Copy( cg.autorotateAxis, cg.autorotateAxisLast );
 	VectorSet( autorotate, 0, ( cg.time%3600 ) * 0.1 * (cg.view.flipped ? -1.0f : 1.0f), 0 );
 	AnglesToAxis( autorotate, cg.autorotateAxis );
 
