@@ -302,17 +302,24 @@ void R_PostProcess( const image_t *ppSource, const refdef_t *fd )
 
 	// apply FXAA
 	if( r_fxaa->integer ) {
-		R_BlitTextureToScrFbo( fd, ppSource, ppSource->fbo, GLSL_PROGRAM_TYPE_FXAA, colorWhite, 0, 0, NULL );
+		R_BlitTextureToScrFbo( fd, ppSource, rsh.screenTextureCopy->fbo, GLSL_PROGRAM_TYPE_FXAA, colorWhite, 0, 0, NULL );
+		R_BlitTextureToScrFbo( fd, rsh.screenTextureCopy, ppSource->fbo, GLSL_PROGRAM_TYPE_NONE, colorWhite, 0, 0, NULL );
 	}
 
 	if( r_motionblur->integer ) {
-		R_BlitTextureToScrFbo( fd, ppSource, ppSource->fbo, GLSL_PROGRAM_TYPE_MOTIONBLUR, colorWhite, 0, 2, ( rsh.screenTextures + FBO_TEXTURE_MOTION_VECTOR ) );
+		R_BlitTextureToScrFbo( fd, ppSource, rsh.screenTextureCopy->fbo, GLSL_PROGRAM_TYPE_MOTIONBLUR, colorWhite, 0, 2, ( rsh.screenTextures + FBO_TEXTURE_MOTION_VECTOR ) );
+		R_BlitTextureToScrFbo( fd, rsh.screenTextureCopy, ppSource->fbo, GLSL_PROGRAM_TYPE_NONE, colorWhite, 0, 0, NULL );
 	}
+
+	// uber postprocess
+	R_BlitTextureToScrFbo( fd, ppSource, rsh.screenTextureCopy->fbo, GLSL_PROGRAM_TYPE_UBER_POSTPROCESS, colorWhite, 0, 0, NULL );
+	R_BlitTextureToScrFbo( fd, rsh.screenTextureCopy, ppSource->fbo, GLSL_PROGRAM_TYPE_NONE, colorWhite, 0, 0, NULL );
 
 	// apply color correction
 	shader_t *cc = rn.refdef.colorCorrection;
 	if( cc && cc->numpasses > 0 && cc->passes[0].images[0] && cc->passes[0].images[0] != rsh.noTexture ) {
-		R_BlitTextureToScrFbo( fd, ppSource, ppSource->fbo, GLSL_PROGRAM_TYPE_COLORCORRECTION, colorWhite, 0, 1, &( rn.refdef.colorCorrection->passes[0].images[0] ) );
+		R_BlitTextureToScrFbo( fd, ppSource, rsh.screenTextureCopy->fbo, GLSL_PROGRAM_TYPE_COLORCORRECTION, colorWhite, 0, 1, &( rn.refdef.colorCorrection->passes[0].images[0] ) );
+		R_BlitTextureToScrFbo( fd, rsh.screenTextureCopy, ppSource->fbo, GLSL_PROGRAM_TYPE_NONE, colorWhite, 0, 0, NULL );
 	}
 
 	// finally copy result to output framebuffer

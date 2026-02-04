@@ -25,55 +25,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 static const char *cg_defaultSexedSounds[] =
 {
-	"*death", //"*death2", "*death3", "*death4",
-	"*fall_0_1", "*fall_0_2", "*fall_1", "*fall_2",
-	"*falldeath",
-	"*gasp", "*drown",
-	"*jump_1", "*jump_2", "*jump_3", "*jump_4",
-	"*pain25", "*pain50", "*pain75", "*pain100",
-	"*wj_1", "*wj_2",
-	"*dash_1", "*dash_2",
-	"*taunt",
-	"*rkill_1", "*rkill_2",
 	NULL
 };
 
 static const char *cg_vsaySexedSounds[VSAY_TOTAL] = {
-	"", // VSAY_GENERIC
-	"*needhealth", // VSAY_NEEDHEALTH
-	"*needweapon", // VSAY_NEEDWEAPON
-	"*needarmor", // VSAY_NEEDARMOR
-	"*affirmative", // VSAY_AFFIRMATIVE
-	"*negative", // VSAY_NEGATIVE
-	"*yes", // VSAY_YES
-	"*no", // VSAY_NO
-	"*ondefense", // VSAY_ONDEFENSE
-	"*onoffense", // VSAY_ONOFFENSE
-	"*oops", // VSAY_OOPS
-	"*sorry", // VSAY_SORRY
-	"*thanks", // VSAY_THANKS
-	"*noproblem", // VSAY_NOPROBLEM
-	"*yeehaa", // VSAY_YEEHAA
-	"*goodgame", // VSAY_GOODGAME
-	"*defend", // VSAY_DEFEND
-	"*attack", // VSAY_ATTACK
-	"*needbackup", // VSAY_NEEDBACKUP
-	"*booo", // VSAY_BOO
-	"*needdefense", // VSAY_NEEDDEFENSE
-	"*needoffense", // VSAY_NEEDOFFENSE
-	"*needhelp", // VSAY_NEEDHELP
-	"*roger", // VSAY_ROGER
-	"*armorfree", // VSAY_ARMORFREE
-	"*areasecured", // VSAY_AREASECURED
-	"*shutup", // VSAY_SHUTUP
-	"*boomstick", // VSAY_BOOMSTICK
-	"*gotowarshell", //VSAY_GOTOWARSHELL
-	"*gotoquad", // VSAY_GOTOQUAD
-	"*ok", // VSAY_OK
-	"*defend_a", // VSAY_DEFEND_A
-	"*attack_a", // VSAY_ATTACK_A
-	"*defend_b", // VSAY_DEFEND_B
-	"*attack_b", // VSAY_ATTACK_B
 	NULL
 };
 
@@ -230,7 +185,7 @@ void CG_SexedSound( int entnum, int entchannel, const char *name, float fvol, fl
 
 void CG_SexedVSay( int entnum, int vsay, float fvol )
 {
-	if( vsay <= VSAY_GENERIC || vsay >= VSAY_TOTAL)
+	if( vsay >= VSAY_TOTAL)
 		return;
 	CG_SexedSound( entnum, CHAN_AUTO, cg_vsaySexedSounds[vsay], fvol, ATTN_NONE);
 }

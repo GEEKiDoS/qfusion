@@ -7,7 +7,7 @@ uniform sampler2D u_BaseTexture;
 uniform sampler2D u_MotionVectorTexture;
 uniform sampler2D u_DepthTexture;
 
-#define MOTION_BLUR_SAMPLES 4
+#define MOTION_BLUR_SAMPLES 8
 
 void main(void)
 {

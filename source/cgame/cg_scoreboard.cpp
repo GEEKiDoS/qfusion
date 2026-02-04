@@ -795,10 +795,6 @@ static int SCR_DrawPlayerTab( const char **ptrptr, int team, int x, int y, int p
 			}
 			break;
 
-		case 'r': // is a ready state tick that is hidden when not in warmup
-			if( atoi( token ) )
-				icon = CG_MediaShader( cgs.media.shaderVSayIcon[VSAY_YES] );
-			break;
 		case 'a': // is a steam avatar
 				int i = atoi( token );
 				if( i < 0 ) // negative numbers toggle transparency on

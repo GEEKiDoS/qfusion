@@ -769,40 +769,6 @@ typedef struct
 } g_vsays_t;
 
 static const g_vsays_t g_vsays[] = {
-	{ "needhealth", VSAY_NEEDHEALTH, "Need health!" },
-	{ "needweapon", VSAY_NEEDWEAPON, "Need weapon!" },
-	{ "needarmor", VSAY_NEEDARMOR, "Need armor!" },
-	{ "affirmative", VSAY_AFFIRMATIVE, "Affirmative!" },
-	{ "negative", VSAY_NEGATIVE, "Negative!" },
-	{ "yes", VSAY_YES, "Yes!" },
-	{ "no", VSAY_NO, "No!" },
-	{ "ondefense", VSAY_ONDEFENSE, "I'm on defense!" },
-	{ "onoffense", VSAY_ONOFFENSE, "I'm on offense!" },
-	{ "oops", VSAY_OOPS, "Oops!" },
-	{ "sorry", VSAY_SORRY, "Sorry!" },
-	{ "thanks", VSAY_THANKS, "Thanks!" },
-	{ "noproblem", VSAY_NOPROBLEM, "No problem!" },
-	{ "yeehaa", VSAY_YEEHAA, "Yeehaa!" },
-	{ "goodgame", VSAY_GOODGAME, "Good game!" },
-	{ "defend", VSAY_DEFEND, "Defend!" },
-	{ "attack", VSAY_ATTACK, "Attack!" },
-	{ "needbackup", VSAY_NEEDBACKUP, "Need backup!" },
-	{ "booo", VSAY_BOOO, "Booo!" },
-	{ "needdefense", VSAY_NEEDDEFENSE, "Need defense!" },
-	{ "needoffense", VSAY_NEEDOFFENSE, "Need offense!" },
-	{ "needhelp", VSAY_NEEDHELP, "Need help!" },
-	{ "roger", VSAY_ROGER, "Roger!" },
-	{ "armorfree", VSAY_ARMORFREE, "Armor free!" },
-	{ "areasecured", VSAY_AREASECURED, "Area secured!" },
-	{ "shutup", VSAY_SHUTUP, "Shut up!" },
-	{ "boomstick", VSAY_BOOMSTICK, "Need boomstick!" },
-	{ "gotowarshell", VSAY_GOTOWARSHELL, "Go to warshell!" },
-	{ "gotoquad", VSAY_GOTOQUAD, "Go to quad!" },
-	{ "ok", VSAY_OK, "Ok!" },
-	{ "defend_a", VSAY_DEFEND_A, "Defend A!" },
-	{ "attack_a", VSAY_ATTACK_A, "Attack A!" },
-	{ "defend_b", VSAY_DEFEND_B, "Defend B!" },
-	{ "attack_b", VSAY_ATTACK_B, "Attack B!" },
 
 	{ NULL, 0 }
 };
@@ -895,10 +861,6 @@ static void G_vsay_f( edict_t *ent, bool team )
 		{
 			event->s.team = ent->s.team;
 			event->r.svflags |= SVF_ONLYTEAM; // send only to clients with the same ->s.team value
-		}
-
-		if( !team && ( vsay->id == VSAY_GOODGAME ) ) {
-			G_AwardFairPlay( ent );
 		}
 
 		if( trap_Cmd_Argc() > 2 )

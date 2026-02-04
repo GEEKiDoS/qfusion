@@ -1826,6 +1826,31 @@ static void RB_RenderMeshGLSL_MotionBlur( const shaderpass_t *pass, r_glslfeat_t
 }
 
 /*
+ * RB_RenderMeshGLSL_UberPostprocess
+ */
+static void RB_RenderMeshGLSL_UberPostprocess( const shaderpass_t *pass, r_glslfeat_t programFeatures )
+{
+	int program;
+	mat4_t texMatrix;
+
+	// set shaderpass state (blending, depthwrite, etc)
+	RB_SetShaderpassState( pass->flags );
+
+	Matrix4_Identity( texMatrix );
+
+	RB_BindImage( 0, pass->images[0] );
+
+	// update uniforms
+	program = RB_RegisterProgram( GLSL_PROGRAM_TYPE_UBER_POSTPROCESS, NULL, rb.currentShader->deformsKey, rb.currentShader->deforms, rb.currentShader->numdeforms, programFeatures );
+	if( RB_BindProgram( program ) ) {
+		RB_UpdateCommonUniforms( program, pass, texMatrix );
+
+		RB_DrawElementsReal( &rb.drawElements );
+	}
+}
+
+
+/*
 * RB_RenderMeshGLSLProgrammed
 */
 void RB_RenderMeshGLSLProgrammed( const shaderpass_t *pass, int programType )
@@ -1885,6 +1910,9 @@ void RB_RenderMeshGLSLProgrammed( const shaderpass_t *pass, int programType )
 		break;
 	case GLSL_PROGRAM_TYPE_MOTIONBLUR:
 		RB_RenderMeshGLSL_MotionBlur( pass, features );
+		break;
+	case GLSL_PROGRAM_TYPE_UBER_POSTPROCESS:
+		RB_RenderMeshGLSL_UberPostprocess( pass, features );
 		break;
 	default:
 		ri.Com_DPrintf( S_COLOR_YELLOW "WARNING: Unknown GLSL program type %i\n", programType );

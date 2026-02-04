@@ -1030,73 +1030,8 @@ void CG_Event_Die( entity_state_t *state, int parm )
 */
 void CG_Event_Dash( entity_state_t *state, int parm )
 {
-	switch( parm )
-	{
-	default:
-		break;
-	case 0: // dash front
-		CG_PModel_AddAnimation( state->number, LEGS_DASH, 0, 0, EVENT_CHANNEL );
-
-                if( ISVIEWERENTITY( state->number ) ){
-				CG_SexedSound( state->number, CHAN_BODY, va( S_PLAYER_DASH_1_to_2, ( rand()&1 )+1 ), 
-					cg_volume_efforts->value, state->attenuation );
-                }
-                else
-                {
-				CG_SexedSound( state->number, CHAN_BODY, va( S_PLAYER_DASH_1_to_2, ( rand()&1 )+1 ), 
-					cg_volume_players->value, state->attenuation );
-                }
-
-		break;
-	case 1: // dash left
-		CG_PModel_AddAnimation( state->number, LEGS_DASH_LEFT, 0, 0, EVENT_CHANNEL );
-
-                if( ISVIEWERENTITY( state->number ) ){
-				CG_SexedSound( state->number, CHAN_BODY, va( S_PLAYER_DASH_1_to_2, ( rand()&1 )+1 ), 
-					cg_volume_efforts->value, state->attenuation );
-                }
-                else
-                {
-				CG_SexedSound( state->number, CHAN_BODY, va( S_PLAYER_DASH_1_to_2, ( rand()&1 )+1 ), 
-					cg_volume_players->value, state->attenuation );
-                }
-
-		break;
-	case 2: // dash right
-		CG_PModel_AddAnimation( state->number, LEGS_DASH_RIGHT, 0, 0, EVENT_CHANNEL );
-
-
-                if( ISVIEWERENTITY( state->number ) ){
-				CG_SexedSound( state->number, CHAN_BODY, va( S_PLAYER_DASH_1_to_2, ( rand()&1 )+1 ), 
-					cg_volume_efforts->value, state->attenuation );
-                }
-                else
-                {
-				CG_SexedSound( state->number, CHAN_BODY, va( S_PLAYER_DASH_1_to_2, ( rand()&1 )+1 ), 
-					cg_volume_players->value, state->attenuation );
-                }
-
-
-		break;
-	case 3: // dash back
-		CG_PModel_AddAnimation( state->number, LEGS_DASH_BACK, 0, 0, EVENT_CHANNEL );
-
-
-                if( ISVIEWERENTITY( state->number ) ){
-				CG_SexedSound( state->number, CHAN_BODY, va( S_PLAYER_DASH_1_to_2, ( rand()&1 )+1 ), 
-					cg_volume_efforts->value, state->attenuation );
-                }
-                else
-                {
-				CG_SexedSound( state->number, CHAN_BODY, va( S_PLAYER_DASH_1_to_2, ( rand()&1 )+1 ), 
-					cg_volume_players->value, state->attenuation );
-                }
-
-
-		break;
-	}
-
-	CG_Dash( state ); // Dash smoke effect
+	// CG_SexedSound();
+	CG_PModel_AddAnimation( state->number, LEGS_DASH, 0, 0, EVENT_CHANNEL );
 
 	// since most dash animations jump with right leg, reset the jump to start with left leg after a dash
 	cg_entities[state->number].jumpedLeft = true;

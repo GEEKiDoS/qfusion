@@ -178,6 +178,7 @@ static void RP_ReloadShaders_f()
 	RP_RegisterProgram( GLSL_PROGRAM_TYPE_COLORCORRECTION, DEFAULT_GLSL_COLORCORRECTION_PROGRAM, NULL, NULL, 0, 0 );
 	RP_RegisterProgram( GLSL_PROGRAM_TYPE_SKYBOX, DEFAULT_GLSL_SKYBOX_PROGRAM, NULL, NULL, 0, 0 );
 	RP_RegisterProgram( GLSL_PROGRAM_TYPE_MOTIONBLUR, DEFAULT_GLSL_MOTIONBLUR_PROGRAM, NULL, NULL, 0, 0 );
+	RP_RegisterProgram( GLSL_PROGRAM_TYPE_UBER_POSTPROCESS, DEFAULT_GLSL_UBER_POSTPROCESS_PROGRAM, NULL, NULL, 0, 0 );
 }
 
 /*
@@ -862,15 +863,6 @@ static const glsl_feature_t glsl_features_fog[] =
 	{ 0, NULL, NULL }
 };
 
-static const glsl_feature_t glsl_features_fxaa[] =
-{
-	{ 0, NULL, NULL }
-};
-
-static const glsl_feature_t glsl_features_skybox[] = {
-	{ 0, NULL, NULL },
-};
-
 static const glsl_feature_t * const glsl_programtypes_features[] =
 {
 	// GLSL_PROGRAM_TYPE_NONE
@@ -892,14 +884,16 @@ static const glsl_feature_t * const glsl_programtypes_features[] =
 	// GLSL_PROGRAM_TYPE_FOG
 	glsl_features_fog,
 	// GLSL_PROGRAM_TYPE_FXAA
-	glsl_features_fxaa,
+	glsl_features_empty,
 	// GLSL_PROGRAM_TYPE_YUV
 	glsl_features_empty,
 	// GLSL_PROGRAM_TYPE_COLORCORRECTION
 	glsl_features_empty,
 	// GLSL_PROGRAM_TYPE_SKYBOX
-	glsl_features_skybox,
+	glsl_features_empty,
 	// GLSL_PROGRAM_TYPE_MOTIONBLUR
+	glsl_features_empty,
+	// GLSL_PROGRAM_TYPE_UBER_POSTPROCESS
 	glsl_features_empty,
 };
 
