@@ -320,7 +320,7 @@ static bool R_RegisterGLExtensions( void )
 	} else if( qgl_AMD_debug_output ) {
 		qglDebugMessageCallbackAMD( __R_GlCallback, NULL );
 	} else if( qgl_ARB_debug_output ) {
-		qglDebugMessageCallbackARB( __R_GlCallback, NULL );
+		qglDebugMessageCallback( __R_GlCallback, NULL );
 	}
 
 	if( qgl_VERSION_2_0 ) {
@@ -407,35 +407,19 @@ static bool R_RegisterGLExtensions( void )
 		ri.Cvar_Get( "gl_max_texture_size", "0", CVAR_READONLY );
 		ri.Cvar_ForceSet( "gl_max_texture_size", va_r( tmp, sizeof( tmp ), "%i", glConfig.maxTextureSize ) );
 
-		/* GL_ARB_GLSL_core (meta extension) */
-		if( !glConfig.ext.GLSL_core ) {
-			qglDeleteProgram = qglDeleteObjectARB;
-			qglDeleteShader = qglDeleteObjectARB;
-			qglDetachShader = qglDetachObjectARB;
-			qglCreateShader = qglCreateShaderObjectARB;
-			qglCreateProgram = qglCreateProgramObjectARB;
-			qglAttachShader = qglAttachObjectARB;
-			qglUseProgram = qglUseProgramObjectARB;
-			qglGetProgramiv = qglGetObjectParameterivARB;
-			qglGetShaderiv = qglGetObjectParameterivARB;
-			qglGetProgramInfoLog = qglGetInfoLogARB;
-			qglGetShaderInfoLog = qglGetInfoLogARB;
-			qglGetAttachedShaders = qglGetAttachedObjectsARB;
-		}
-
 		/* GL_ARB_texture_cube_map */
 		glConfig.maxTextureCubemapSize = 0;
-		qglGetIntegerv( GL_MAX_CUBE_MAP_TEXTURE_SIZE_ARB, &glConfig.maxTextureCubemapSize );
+		qglGetIntegerv( GL_MAX_CUBE_MAP_TEXTURE_SIZE, &glConfig.maxTextureCubemapSize );
 		glConfig.maxTextureCubemapSize = 1 << Q_log2( glConfig.maxTextureCubemapSize );
 
 		/* GL_ARB_multitexture */
 		glConfig.maxTextureUnits = 1;
-		qglGetIntegerv( GL_MAX_TEXTURE_IMAGE_UNITS_ARB, &glConfig.maxTextureUnits );
+		qglGetIntegerv( GL_MAX_TEXTURE_IMAGE_UNITS, &glConfig.maxTextureUnits );
 		clamp( glConfig.maxTextureUnits, 1, MAX_TEXTURE_UNITS );
 
 		/* GL_EXT_framebuffer_object */
 		glConfig.maxRenderbufferSize = 0;
-		qglGetIntegerv( GL_MAX_RENDERBUFFER_SIZE_EXT, &glConfig.maxRenderbufferSize );
+		qglGetIntegerv( GL_MAX_RENDERBUFFER_SIZE, &glConfig.maxRenderbufferSize );
 		glConfig.maxRenderbufferSize = 1 << Q_log2( glConfig.maxRenderbufferSize );
 		if( glConfig.maxRenderbufferSize > glConfig.maxTextureSize )
 			glConfig.maxRenderbufferSize = glConfig.maxTextureSize;
@@ -443,15 +427,15 @@ static bool R_RegisterGLExtensions( void )
 		/* GL_EXT_texture_filter_anisotropic */
 		glConfig.maxTextureFilterAnisotropic = 0;
 		if( strstr( glConfig.extensionsString, "GL_EXT_texture_filter_anisotropic" ) )
-			qglGetIntegerv( GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &glConfig.maxTextureFilterAnisotropic );
+			qglGetIntegerv( GL_MAX_TEXTURE_MAX_ANISOTROPY, &glConfig.maxTextureFilterAnisotropic );
 
 		/* GL_EXT_texture3D and GL_EXT_texture_array */
 		glConfig.maxTexture3DSize = 0;
 		glConfig.maxTextureLayers = 0;
 		if( glConfig.ext.texture3D )
-			qglGetIntegerv( GL_MAX_3D_TEXTURE_SIZE_EXT, &glConfig.maxTexture3DSize );
+			qglGetIntegerv( GL_MAX_3D_TEXTURE_SIZE, &glConfig.maxTexture3DSize );
 		if( glConfig.ext.texture_array )
-			qglGetIntegerv( GL_MAX_ARRAY_TEXTURE_LAYERS_EXT, &glConfig.maxTextureLayers );
+			qglGetIntegerv( GL_MAX_ARRAY_TEXTURE_LAYERS, &glConfig.maxTextureLayers );
 		/* GL_EXT_packed_depth_stencil
 		 * Many OpenGL implementation don't support separate depth and stencil renderbuffers. */
 		if( !glConfig.ext.packed_depth_stencil )
@@ -467,10 +451,10 @@ static bool R_RegisterGLExtensions( void )
 		glConfig.maxVertexUniformComponents = glConfig.maxFragmentUniformComponents = 0;
 		glConfig.maxVaryingFloats = 0;
 
-		qglGetIntegerv( GL_MAX_VERTEX_ATTRIBS_ARB, &glConfig.maxVertexAttribs );
-		qglGetIntegerv( GL_MAX_VERTEX_UNIFORM_COMPONENTS_ARB, &glConfig.maxVertexUniformComponents );
-		qglGetIntegerv( GL_MAX_VARYING_FLOATS_ARB, &glConfig.maxVaryingFloats );
-		qglGetIntegerv( GL_MAX_FRAGMENT_UNIFORM_COMPONENTS_ARB, &glConfig.maxFragmentUniformComponents );
+		qglGetIntegerv( GL_MAX_VERTEX_ATTRIBS, &glConfig.maxVertexAttribs );
+		qglGetIntegerv( GL_MAX_VERTEX_UNIFORM_COMPONENTS, &glConfig.maxVertexUniformComponents );
+		qglGetIntegerv( GL_MAX_VARYING_FLOATS, &glConfig.maxVaryingFloats );
+		qglGetIntegerv( GL_MAX_FRAGMENT_UNIFORM_COMPONENTS, &glConfig.maxFragmentUniformComponents );
 
 		// instance attributes are beyond the minimum number of attributes supported by GLES2
 		if( glConfig.maxVertexAttribs <= VATTRIB_INSTANCE_XYZS ) {
@@ -888,7 +872,7 @@ static rserr_t R_PostInit( void )
 	glConfig.versionString = (const char *)qglGetString( GL_VERSION );
 	glConfig.extensionsString = (const char *)qglGetString( GL_EXTENSIONS );
 	glConfig.glwExtensionsString = NULL;
-	glConfig.shadingLanguageVersionString = (const char *)qglGetString( GL_SHADING_LANGUAGE_VERSION_ARB );
+	glConfig.shadingLanguageVersionString = (const char *)qglGetString( GL_SHADING_LANGUAGE_VERSION );
 
 	if( !glConfig.vendorString ) glConfig.vendorString = "";
 	if( !glConfig.rendererString ) glConfig.rendererString = "";

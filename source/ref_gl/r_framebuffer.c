@@ -62,17 +62,17 @@ void RFB_Init( void )
 static void RFB_DeleteObject( r_fbo_t *fbo )
 {
 	if( fbo->depthRenderBuffer ) {
-		qglDeleteRenderbuffersEXT( 1, &( fbo->depthRenderBuffer ) );
+		qglDeleteRenderbuffers( 1, &( fbo->depthRenderBuffer ) );
 		fbo->depthRenderBuffer = 0;
 	}
 
 	if( fbo->stencilRenderBuffer ) {
-		qglDeleteRenderbuffersEXT( 1, &( fbo->stencilRenderBuffer ) );
+		qglDeleteRenderbuffers( 1, &( fbo->stencilRenderBuffer ) );
 		fbo->stencilRenderBuffer = 0;
 	}
 
 	if( fbo->objectID ) {
-		qglDeleteFramebuffersEXT( 1, &( fbo->objectID ) );
+		qglDeleteFramebuffers( 1, &( fbo->objectID ) );
 		fbo->objectID = 0;
 	}
 }
@@ -106,7 +106,7 @@ int RFB_RegisterObject( int width, int height, bool builtin, bool depthRB, bool 
 	fbo = r_framebuffer_objects + i;
 
 found:
-	qglGenFramebuffersEXT( 1, &fbID );
+	qglGenFramebuffers( 1, &fbID );
 	memset( fbo, 0, sizeof( *fbo ) );
 	fbo->objectID = fbID;
 	if( builtin )
@@ -125,9 +125,9 @@ found:
 	if( depthRB ) {
 		int format;
 
-		qglGenRenderbuffersEXT( 1, &rbID );
+		qglGenRenderbuffers( 1, &rbID );
 		fbo->depthRenderBuffer = rbID;
-		qglBindRenderbufferEXT( GL_RENDERBUFFER_EXT, rbID );
+		qglBindRenderbuffer( GL_RENDERBUFFER, rbID );
 
 		if( stencilRB )
 			format = GL_DEPTH24_STENCIL8_EXT;
@@ -137,17 +137,17 @@ found:
 			format = GL_DEPTH_COMPONENT16_NONLINEAR_NV;
 		else
 			format = GL_DEPTH_COMPONENT16;
-		qglRenderbufferStorageEXT( GL_RENDERBUFFER_EXT, format, width, height );
+		qglRenderbufferStorage( GL_RENDERBUFFER, format, width, height );
 
-		qglFramebufferRenderbufferEXT( GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, rbID );
+		qglFramebufferRenderbuffer( GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rbID );
 		if( stencilRB )
-			qglFramebufferRenderbufferEXT( GL_FRAMEBUFFER_EXT, GL_STENCIL_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, rbID );
+			qglFramebufferRenderbuffer( GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbID );
 
-		qglBindRenderbufferEXT( GL_RENDERBUFFER_EXT, 0 );
+		qglBindRenderbuffer( GL_RENDERBUFFER, 0 );
 	}
 
 	if( r_bound_framebuffer_objectID )
-		qglBindFramebufferEXT( GL_FRAMEBUFFER_EXT, r_bound_framebuffer_object->objectID );
+		qglBindFramebuffer( GL_FRAMEBUFFER, r_bound_framebuffer_object->objectID );
 	else
 		qglBindFramebufferEXT( GL_FRAMEBUFFER_EXT, 0 );
 
@@ -203,7 +203,7 @@ void RFB_BindObject( int object )
 {
 	if( !object ) {
 		if( r_frambuffer_objects_initialized ) {
-			qglBindFramebufferEXT( GL_FRAMEBUFFER_EXT, 0 );
+			qglBindFramebuffer( GL_FRAMEBUFFER, 0 );
 		}
 		r_bound_framebuffer_objectID = 0;
 		r_bound_framebuffer_object = NULL;
@@ -285,12 +285,12 @@ void RFB_AttachTextureToObject( int object, image_t *texture, FBO_TEXTURE_TYPE t
 	texture->fbo = object;
 
 	// attach texture
-	qglFramebufferTexture2DEXT( GL_FRAMEBUFFER_EXT, attachment, GL_TEXTURE_2D, texture->texnum, 0 );
+	qglFramebufferTexture2D( GL_FRAMEBUFFER, attachment, GL_TEXTURE_2D, texture->texnum, 0 );
 	if( ( texture->flags & ( IT_DEPTH | IT_STENCIL ) ) == ( IT_DEPTH | IT_STENCIL ) ) {
-		qglFramebufferTexture2DEXT( GL_FRAMEBUFFER_EXT, GL_STENCIL_ATTACHMENT_EXT, GL_TEXTURE_2D, texture->texnum, 0 );
+		qglFramebufferTexture2D( GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_TEXTURE_2D, texture->texnum, 0 );
 	}
 
-	qglBindFramebufferEXT( GL_FRAMEBUFFER_EXT, r_bound_framebuffer_objectID ? r_bound_framebuffer_object->objectID : 0 );
+	qglBindFramebuffer( GL_FRAMEBUFFER, r_bound_framebuffer_objectID ? r_bound_framebuffer_object->objectID : 0 );
 }
 
 /*
@@ -362,11 +362,11 @@ void RFB_BlitObject( int dest, int bitMask, int mode )
 	}
 
 	qglBindFramebufferEXT( GL_FRAMEBUFFER_EXT, 0 );
-	qglBindFramebufferEXT( GL_READ_FRAMEBUFFER_EXT, fbo->objectID );
-	qglBindFramebufferEXT( GL_DRAW_FRAMEBUFFER_EXT, destfbo->objectID );
-	qglBlitFramebufferEXT( 0, 0, fbo->width, fbo->height, dx, dy, dx + dw, dy + dh, bits, GL_NEAREST );
-	qglBindFramebufferEXT( GL_READ_FRAMEBUFFER_EXT, 0 );
-	qglBindFramebufferEXT( GL_DRAW_FRAMEBUFFER_EXT, 0 );
+	qglBindFramebuffer( GL_READ_FRAMEBUFFER, fbo->objectID );
+	qglBindFramebuffer( GL_DRAW_FRAMEBUFFER, destfbo->objectID );
+	qglBlitFramebuffer( 0, 0, fbo->width, fbo->height, dx, dy, dx + dw, dy + dh, bits, GL_NEAREST );
+	qglBindFramebuffer( GL_READ_FRAMEBUFFER, 0 );
+	qglBindFramebuffer( GL_DRAW_FRAMEBUFFER, 0 );
 	qglBindFramebufferEXT( GL_FRAMEBUFFER_EXT, fbo->objectID );
 
 	assert( qglGetError() == GL_NO_ERROR );
@@ -384,7 +384,7 @@ bool RFB_CheckObjectStatus( void )
 	if( !r_frambuffer_objects_initialized )
 		return false;
 
-	status = qglCheckFramebufferStatusEXT( GL_FRAMEBUFFER_EXT );
+	status = qglCheckFramebufferStatus( GL_FRAMEBUFFER );
 	switch( status ) {
 		case GL_FRAMEBUFFER_COMPLETE_EXT:
 			return true;

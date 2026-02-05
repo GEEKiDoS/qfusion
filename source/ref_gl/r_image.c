@@ -112,8 +112,8 @@ int R_TextureTarget( int flags, int *uploadTarget )
 	int target, target2;
 
 	if( flags & IT_CUBEMAP ) {
-		target = GL_TEXTURE_CUBE_MAP_ARB;
-		target2 = GL_TEXTURE_CUBE_MAP_POSITIVE_X_ARB;
+		target = GL_TEXTURE_CUBE_MAP;
+		target2 = GL_TEXTURE_CUBE_MAP_POSITIVE_X;
 	} else if( flags & IT_ARRAY ) {
 		target = target2 = GL_TEXTURE_2D_ARRAY_EXT;
 	} else if( flags & IT_3D ) {
@@ -785,13 +785,13 @@ static int R_TextureInternalFormat( int samples, int flags, int pixelType )
 	if( !( flags & IT_NOCOMPRESS ) && r_texturecompression->integer && glConfig.ext.texture_compression )
 	{
 		if( samples == 4 )
-			return GL_COMPRESSED_RGBA_ARB;
+			return GL_COMPRESSED_RGBA;
 		if( samples == 3 )
-			return GL_COMPRESSED_RGB_ARB;
+			return GL_COMPRESSED_RGB;
 		if( samples == 2 )
-			return GL_COMPRESSED_LUMINANCE_ALPHA_ARB;
+			return GL_COMPRESSED_LUMINANCE_ALPHA;
 		if( ( samples == 1 ) && !( flags & IT_ALPHAMASK ) )
-			return GL_COMPRESSED_LUMINANCE_ARB;
+			return GL_COMPRESSED_LUMINANCE;
 	}
 
 	if( samples == 3 )
@@ -952,8 +952,8 @@ static void R_SetupTexParameters( int flags, int upload_width, int upload_height
 
 	if( ( flags & IT_DEPTH ) && ( flags & IT_DEPTHCOMPARE ) && glConfig.ext.shadow )
 	{
-		qglTexParameteri( target, GL_TEXTURE_COMPARE_MODE_ARB, GL_COMPARE_R_TO_TEXTURE_ARB );
-		qglTexParameteri( target, GL_TEXTURE_COMPARE_FUNC_ARB, GL_LEQUAL );
+		qglTexParameteri( target, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_R_TO_TEXTURE );
+		qglTexParameteri( target, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL );
 	}
 }
 
@@ -1015,7 +1015,7 @@ static void R_Upload32( int ctx, uint8_t **data, int layer,
 		if( flags & ( IT_ARRAY | IT_3D ) )
 		{
 			for( i = 0; i < numTextures; i++, target++ )
-				qglTexSubImage3DEXT( target, 0, 0, 0, layer, scaledWidth, scaledHeight, 1, format, type, data[i] );
+				qglTexSubImage3D( target, 0, 0, 0, layer, scaledWidth, scaledHeight, 1, format, type, data[i] );
 		}
 		else if( subImage )
 		{
@@ -1046,7 +1046,7 @@ static void R_Upload32( int ctx, uint8_t **data, int layer,
 				mip = NULL;
 
 			if( flags & ( IT_ARRAY | IT_3D ) )
-				qglTexSubImage3DEXT( target, 0, 0, 0, layer, scaledWidth, scaledHeight, 1, format, type, mip );
+				qglTexSubImage3D( target, 0, 0, 0, layer, scaledWidth, scaledHeight, 1, format, type, mip );
 			else if( subImage )
 				qglTexSubImage2D( target, 0, x, y, scaledWidth, scaledHeight, format, type, mip );
 			else
@@ -1073,7 +1073,7 @@ static void R_Upload32( int ctx, uint8_t **data, int layer,
 					miplevel++;
 
 					if( flags & ( IT_ARRAY | IT_3D ) )
-						qglTexSubImage3DEXT( target, miplevel, 0, 0, layer, w, h, 1, format, type, mip );
+						qglTexSubImage3D( target, miplevel, 0, 0, layer, w, h, 1, format, type, mip );
 					else if( subImage )
 						qglTexSubImage2D( target, miplevel, x, y, w, h, format, type, mip );
 					else
@@ -1381,7 +1381,7 @@ static bool R_LoadKTX( int ctx, image_t *image, const char *pathname )
 			for( mipIndex = minMipLevels, mip = 0; mipIndex < numberOfMipLevels; mipIndex++, mip++ ) {
 				for( uint32_t face = 0; face < numFaces; ++face ) {
 					struct texture_buf_s *texBuffer = R_KTXResolveBuffer( &ktxContext, mipIndex, face, 0 );
-					qglCompressedTexImage2DARB( target + face, mip, compressedFormat, texBuffer->width, texBuffer->height, 0, texBuffer->size, texBuffer->buffer );
+					qglCompressedTexImage2D( target + face, mip, compressedFormat, texBuffer->width, texBuffer->height, 0, texBuffer->size, texBuffer->buffer );
 				}
 			}
 
@@ -1768,7 +1768,7 @@ image_t *R_Create3DImage( const char *name, int width, int height, int layers, i
 	R_TextureTarget( flags, &target );
 	R_TextureFormat( flags, samples, &comp, &format, &type );
 
-	qglTexImage3DEXT( target, 0, comp, scaledWidth, scaledHeight, layers, 0, format, type, NULL );
+	qglTexImage3D( target, 0, comp, scaledWidth, scaledHeight, layers, 0, format, type, NULL );
 
 	if( !( flags & IT_NOMIPMAP ) )
 	{
@@ -1781,7 +1781,7 @@ image_t *R_Create3DImage( const char *name, int width, int height, int layers, i
 				scaledWidth = 1;
 			if( scaledHeight < 1 )
 				scaledHeight = 1;
-			qglTexImage3DEXT( target, miplevel++, comp, scaledWidth, scaledHeight, layers, 0, format, type, NULL );
+			qglTexImage3D( target, miplevel++, comp, scaledWidth, scaledHeight, layers, 0, format, type, NULL );
 		}
 	}
 
@@ -2383,7 +2383,7 @@ image_t *R_GetShadowmapTexture( int id, int viewportWidth, int viewportHeight, i
 	}
 
 	if( glConfig.ext.shadow ) {
-		// render to depthbuffer, GL_ARB_shadow path
+		// render to depthbuffer, GL_shadow path
 		flags |= IT_DEPTH;
 		samples = 1;
 	} else {
