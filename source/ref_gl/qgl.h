@@ -65,8 +65,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #if !defined ( __MACOSX__ ) && !defined ( __ANDROID__ )
 #ifdef _WIN32
 #include <windows.h>
+#include "glad/wgl.h"
+#else
+#include "glad/gl.h"
 #endif
-#include "glad.h"
 #endif
 
 typedef struct qgl_driverinfo_s {

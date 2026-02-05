@@ -101,7 +101,9 @@ typedef struct r_backend_s
 
 		bool			flushTextures;
 		int				currentTMU;
-		unsigned		currentTextures[MAX_TEXTURE_UNITS];				
+		unsigned		currentTextures[MAX_TEXTURE_UNITS];
+		
+		unsigned int	vao; // Vertex Array Object for Core Profile
 	} gl;
 
 	unsigned int time;

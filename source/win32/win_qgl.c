@@ -83,6 +83,7 @@ static bool qgl_inited;
 */
 void QGL_Shutdown( void )
 {
+	gladLoaderUnloadGL();
 	qgl_inited = false;
 }
 
@@ -118,6 +119,6 @@ qgl_initerr_t QGL_Init( const char *dllname )
 	if( qgl_inited )
 		return qgl_initerr_ok;
 
-	qgl_inited = !!gladLoadGL();
+	qgl_inited = !!gladLoaderLoadGL();
 	return qgl_inited ? qgl_initerr_ok : qgl_initerr_invalid_driver;
 }

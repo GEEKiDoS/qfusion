@@ -838,8 +838,6 @@ static void R_TextureFormat( int flags, int samples, int *comp, int *format, int
 			else
 			{
 				*type = GL_UNSIGNED_SHORT;
-				if( glConfig.ext.depth_nonlinear )
-					*comp = GL_DEPTH_COMPONENT16_NONLINEAR_NV;
 			}
 		}
 	}
@@ -919,8 +917,8 @@ static void R_SetupTexParameters( int flags, int upload_width, int upload_height
 				if( !mipheight )
 					mipheight = 1;
 			}
-			qglTexParameteri( target, GL_TEXTURE_MAX_LOD_SGIS, mip );
-			qglTexParameteri( target, GL_TEXTURE_MAX_LEVEL_SGIS, mip );
+			qglTexParameteri( target, GL_TEXTURE_MAX_LOD, mip );
+			qglTexParameteri( target, GL_TEXTURE_MAX_LEVEL, mip );
 		}
 	}
 	else if (flags & IT_FRAMEBUFFER)
@@ -1114,7 +1112,7 @@ static int R_PixelFormatSize( int format, int type )
 	case 0: // 4x4 block sizes
 		switch( format )
 		{
-		case GL_ETC1_RGB8_OES:
+		case GL_COMPRESSED_RGB8_ETC2:
 			return 8;
 		}
 		break;
@@ -1286,7 +1284,7 @@ static bool R_IsKTXFormatValid( int format, int type )
 	case GL_UNSIGNED_SHORT_5_6_5:
 		return ( format == GL_RGB ) ? true : false;
 	case 0:
-		return ( format == GL_ETC1_RGB8_OES ) ? true : false;
+		return ( format == GL_COMPRESSED_RGB8_ETC2 ) ? true : false;
 	}
 	return false;
 }
@@ -1372,7 +1370,7 @@ static bool R_LoadKTX( int ctx, image_t *image, const char *pathname )
 
 		if( ( glConfig.ext.texture_compression && ( glConfig.ext.compressed_ETC1_RGB8_texture || glConfig.ext.ES3_compatibility ) ) && minMipLevels >= 0 && glConfig.ext.texture_non_power_of_two ) {
 			int target;
-			const int compressedFormat = glConfig.ext.ES3_compatibility ? GL_COMPRESSED_RGB8_ETC2 : GL_ETC1_RGB8_OES;
+			const int compressedFormat = GL_COMPRESSED_RGB8_ETC2;
 			R_TextureTarget( image->flags, &target );
 			R_SetupTexParameters( image->flags, scaledWidth, scaledHeight, image->minmipsize );
 			const uint16_t numberOfMipLevels = R_KTXGetNumberMips( &ktxContext );

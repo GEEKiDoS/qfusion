@@ -905,6 +905,7 @@ static const glsl_feature_t * const glsl_programtypes_features[] =
 #endif
 
 #define QF_GLSL_VERSION330 "#version 330\n"
+#define QF_GLSL_VERSION330_CORE "#version 330 core\n"
 
 #define QF_GLSL_ENABLE_ARB_GPU_SHADER5 "#extension GL_ARB_gpu_shader5 : enable\n"
 #define QF_GLSL_ENABLE_EXT_GPU_SHADER5 "#extension GL_EXT_gpu_shader5 : enable\n"
@@ -1639,7 +1640,8 @@ static int RP_RegisterProgramBinary( int type, const char *name, const char *def
 		ri.Com_Error( ERR_FATAL, "Unsupported GPU." );
 	}
 
-	shaderStrings[i++] = QF_GLSL_VERSION330;
+	// Use core profile version for OpenGL 3.3 Core Profile
+	shaderStrings[i++] = QF_GLSL_VERSION330_CORE;
 	shaderStrings[i++] = QF_GLSL_ENABLE_ARB_GPU_SHADER5;
 
 	enableTextureArrayIdx = i;

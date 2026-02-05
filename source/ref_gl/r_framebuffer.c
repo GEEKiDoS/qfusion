@@ -130,11 +130,9 @@ found:
 		qglBindRenderbuffer( GL_RENDERBUFFER, rbID );
 
 		if( stencilRB )
-			format = GL_DEPTH24_STENCIL8_EXT;
+			format = GL_DEPTH24_STENCIL8;
 		else if( glConfig.ext.depth24 )
 			format = GL_DEPTH_COMPONENT24;
-		else if( glConfig.ext.depth_nonlinear )
-			format = GL_DEPTH_COMPONENT16_NONLINEAR_NV;
 		else
 			format = GL_DEPTH_COMPONENT16;
 		qglRenderbufferStorage( GL_RENDERBUFFER, format, width, height );

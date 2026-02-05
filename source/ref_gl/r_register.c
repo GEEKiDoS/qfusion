@@ -166,31 +166,6 @@ static void R_RegisterFatalExt(const char* ext) {
 	Sys_Error( "'%s' is not available, aborting\n", ext);
 }
 
-static bool R_TryLoadGLProcAddress(const gl_extension_func_t *funcs)
-{
-	const gl_extension_func_t *func = funcs;
-	if( func ) {
-		do {
-			*( func->pointer ) = (void *)qglGetProcAddress( func->name );
-			if( !*( func->pointer ) ) {
-				Com_Printf( "failed to load function: %s\n", func->name);
-				break;
-			}
-		} while( ( ++func )->name );
-
-		// some function is missing
-		if( func->name ) {
-			const gl_extension_func_t *func2 = funcs;
-			// reset previously initialized functions back to NULL
-			do {
-				*( func2->pointer ) = NULL;
-			} while( ( ++func2 )->name && func2 != func );
-			return false;
-		}
-	}
-	return true;
-}
-
 static void __R_GlCallback( GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const char *msg, const void *userParam )
 {
 	const char *_source;
@@ -295,97 +270,83 @@ static bool R_RegisterGLExtensions( void )
 {
 	memset( &glConfig.ext, 0, sizeof( glextinfo_t ) );
 
-	if( !qgl_ARB_vertex_buffer_object ) {
-		R_RegisterFatalExt( "gl_ext_vertex_buffer_object_ARB_funcs " );
-	}
+	// GL_ARB_vertex_buffer_object is core in OpenGL 1.5
+	// No need to check for it
 
-	if( !qgl_EXT_framebuffer_object ) {
+	if( !GLAD_GL_EXT_framebuffer_object ) {
 		R_RegisterFatalExt( "gl_ext_framebuffer_object_EXT_funcs" );
 	}
 
-	if( !qgl_ARB_multitexture ) {
-		R_RegisterFatalExt( "gl_ext_multitexture_ARB_funcs" );
-	}
+	// GL_ARB_multitexture is core in OpenGL 1.3
+	// No need to check for it
 
-	if( !qgl_ARB_shader_objects ) {
-		R_RegisterFatalExt( "gl_ext_GLSL_ARB_funcs" );
-	}
+	// GL_ARB_shader_objects is core in OpenGL 2.0
+	// No need to check for it
 
-	if( !qgl_EXT_blend_func_separate ) {
+	if( !GLAD_GL_EXT_blend_func_separate ) {
 		R_RegisterFatalExt( "gl_ext_blend_func_separate_EXT_funcs" );
 	}
 
-	if( qgl_KHR_debug || qgl_VERSION_4_3 ) {
-		qglDebugMessageCallback( __R_GlCallback, NULL );
-	} else if( qgl_AMD_debug_output ) {
-		qglDebugMessageCallbackAMD( __R_GlCallback, NULL );
-	} else if( qgl_ARB_debug_output ) {
-		qglDebugMessageCallback( __R_GlCallback, NULL );
-	}
+	// Debug output extensions may not be available in Core Profile
+	// Skip debug callback setup for now
+	// qglDebugMessageCallback( __R_GlCallback, NULL );
 
-	if( qgl_VERSION_2_0 ) {
+	if( GLAD_GL_VERSION_2_0 ) {
 		glConfig.ext.GLSL_core = 1;
 	}
 
-	if( qgl_VERSION_3_0 ) {
+	if( GLAD_GL_VERSION_3_0 ) {
 		glConfig.ext.GLSL130 = 1;
 	}
 	
-	if( qgl_VERSION_3_2 ) {
+	if( GLAD_GL_VERSION_3_2 ) {
 		glConfig.ext.draw_range_elements = 1;
 	}
 
-	if( qgl_EXT_framebuffer_blit ) {
-		glConfig.ext.framebuffer_blit = 1;
-	}
+	// GL_EXT_framebuffer_blit is core in OpenGL 3.0
+	glConfig.ext.framebuffer_blit = 1;
 
-	if( qgl_ARB_texture_compression ) {
-		glConfig.ext.texture_compression = 1;
-	}
+	// GL_ARB_texture_compression is core in OpenGL 1.3
+	glConfig.ext.texture_compression = 1;
 
-	if( qgl_ARB_draw_instanced ) {
+	if( GLAD_GL_EXT_draw_instanced ) {
 		glConfig.ext.draw_instanced = 1;
 	}
 
-	if( qgl_ARB_instanced_arrays ) {
-		glConfig.ext.instanced_arrays = 1;
-	}
+	// GL_ARB_instanced_arrays is core in OpenGL 3.3
+	glConfig.ext.instanced_arrays = 1;
 
-	if( qgl_VERSION_4_1 ) {
+	if( GLAD_GL_VERSION_4_1 ) {
 		glConfig.ext.get_program_binary = 1;
 	}
 
-	if( qgl_EXT_texture3D ) {
+	if( GLAD_GL_EXT_texture3D ) {
 		glConfig.ext.texture3D = 1;
 		glConfig.ext.texture_array = 1;
 	}
 
-	glConfig.ext.texture_filter_anisotropic = qgl_ARB_texture_filter_anisotropic;
-	glConfig.ext.meminfo = qgl_ATI_meminfo;
-	glConfig.ext.gpu_memory_info = qgl_NVX_gpu_memory_info;
-	glConfig.ext.gpu_shader5 = qgl_ARB_gpu_shader5;
-	glConfig.ext.texture_lod = qgl_ARB_shader_texture_lod;
-	glConfig.ext.packed_depth_stencil = qgl_EXT_packed_depth_stencil;
-	glConfig.ext.ES3_compatibility = qgl_ARB_ES3_compatibility;
-	glConfig.ext.half_float_vertex = qgl_ARB_half_float_vertex;
+	glConfig.ext.texture_filter_anisotropic = GLAD_GL_EXT_texture_filter_anisotropic;
+	glConfig.ext.meminfo = GLAD_GL_ATI_meminfo;
+	glConfig.ext.gpu_memory_info = GLAD_GL_NVX_gpu_memory_info;
+	// GL_ARB_gpu_shader5 and GL_ARB_shader_texture_lod may not be available
+	glConfig.ext.gpu_shader5 = 0;
+	glConfig.ext.texture_lod = 0;
+	glConfig.ext.packed_depth_stencil = GLAD_GL_EXT_packed_depth_stencil;
+	// GL_ARB_ES3_compatibility may not be available in Core Profile
+	glConfig.ext.ES3_compatibility = 0;
+	// GL_ARB_half_float_vertex may not be available
+	glConfig.ext.half_float_vertex = 0;
 	glConfig.ext.texture_edge_clamp = true;
-	glConfig.ext.texture_cube_map = qgl_ARB_texture_cube_map;
-	glConfig.ext.depth_texture = qgl_ARB_depth_texture;
-	glConfig.ext.shadow = qgl_ARB_shadow;
-	glConfig.ext.texture_non_power_of_two = qgl_ARB_texture_non_power_of_two;
+	// GL_ARB_texture_cube_map is core in OpenGL 1.3
+	glConfig.ext.texture_cube_map = 1;
+	// GL_ARB_depth_texture is core in OpenGL 1.4
+	glConfig.ext.depth_texture = 1;
+	// GL_ARB_shadow is core in OpenGL 1.4
+	glConfig.ext.shadow = 1;
+	// GL_ARB_texture_non_power_of_two is core in OpenGL 2.0
+	glConfig.ext.texture_non_power_of_two = 1;
 
-#ifndef USE_SDL2
-#ifdef GLX_VERSION
-	if( R_TryLoadGLProcAddress( glx_ext_swap_control_SGI_funcs ) ) {
-		glConfig.ext.swap_control = 1;
-	}
-#endif
-#ifdef _WIN32
-	if( R_TryLoadGLProcAddress( wgl_ext_swap_interval_EXT_funcs ) ) {
-		glConfig.ext.swap_control = 1;
-	}
-#endif
-#endif
+	glConfig.ext.swap_control = GLAD_WGL_EXT_swap_control;
 
 	{
 		char tmp[128];

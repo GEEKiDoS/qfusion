@@ -49,6 +49,13 @@ void RB_Init( void )
 	// initialize shading
 	RB_InitShading();
 
+	// create VAO for Core Profile compatibility
+	// Always create VAO when using Core Profile or OpenGL 3.0+
+	if( glConfig.version >= 300 ) { // OpenGL 3.0 or higher
+		qglGenVertexArrays( 1, &rb.gl.vao );
+		qglBindVertexArray( rb.gl.vao );
+	}
+
 	// create VBO's we're going to use for streamed data
 	RB_RegisterStreamVBOs();
 	
@@ -61,6 +68,12 @@ void RB_Init( void )
 void RB_Shutdown( void )
 {
 	RP_StorePrecacheList();
+
+	// delete VAO if it was created
+	if( rb.gl.vao ) {
+		qglDeleteVertexArrays( 1, &rb.gl.vao );
+		rb.gl.vao = 0;
+	}
 
 	R_FreePool( &rb.mempool );
 }
@@ -181,7 +194,6 @@ static void RB_SelectTextureUnit( int tmu )
 
 	rb.gl.currentTMU = tmu;
 	qglActiveTexture( tmu + GL_TEXTURE0 );
-	qglClientActiveTexture( tmu + GL_TEXTURE0 );
 }
 
 /*
@@ -418,7 +430,7 @@ void RB_SetState( int state )
 			if( !( rb.gl.state & GLSTATE_BLEND_MASK ) )
 				qglEnable( GL_BLEND );
 
-			qglBlendFuncSeparateEXT( blendsrc, blenddst, GL_ONE, GL_ONE );
+			qglBlendFuncSeparate( blendsrc, blenddst, GL_ONE, GL_ONE );
 		}
 		else
 		{
@@ -1158,7 +1170,7 @@ void RB_DrawElementsReal( rbDrawElements_t *de )
 				RB_SetInstanceData( 1, rb.drawInstances + i );
 
 				if( glConfig.ext.draw_range_elements ) {
-					qglDrawRangeElementsEXT( rb.primitive, 
+					qglDrawRangeElements( rb.primitive, 
 						firstVert, firstVert + numVerts - 1, numElems, 
 						GL_UNSIGNED_SHORT, (GLvoid *)(firstElem * sizeof( elem_t )) );
 				} else {
@@ -1174,7 +1186,7 @@ void RB_DrawElementsReal( rbDrawElements_t *de )
 		numInstances = 1;
 
 		if( glConfig.ext.draw_range_elements ) {
-			qglDrawRangeElementsEXT( rb.primitive, 
+			qglDrawRangeElements( rb.primitive, 
 				firstVert, firstVert + numVerts - 1, numElems, 
 				GL_UNSIGNED_SHORT, (GLvoid *)(firstElem * sizeof( elem_t )) );
 		} else {
@@ -1209,6 +1221,11 @@ static void RB_DrawElements_( void )
 	}
 
 	assert( rb.currentShader != NULL );
+
+	// Bind VAO for Core Profile compatibility
+	if( rb.gl.vao ) {
+		qglBindVertexArray( rb.gl.vao );
+	}
 
 	RB_EnableVertexAttribs();
 

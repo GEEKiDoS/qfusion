@@ -33,6 +33,7 @@
 #include "../ref_gl/r_local.h"
 #include "win_glw.h"
 #include "wingdi.h"
+#include "../ref_gl/qgl.h"
 
 #define WINDOW_STYLE	( WS_OVERLAPPED|WS_BORDER|WS_CAPTION|WS_VISIBLE|WS_SYSMENU|WS_MINIMIZEBOX )
 
@@ -425,6 +426,8 @@ static int GLimp_InitGL( void )
 	** startup the OpenGL subsystem by creating a context and making
 	** it current
 	*/
+	
+	// First create a temporary context to load extensions
 	if( ( glw_state.hGLRC = wglCreateContext( glw_state.hDC ) ) == 0 )
 	{
 		ri.Com_Printf( "GLimp_Init() - qwglCreateContext failed\n" );
@@ -435,6 +438,50 @@ static int GLimp_InitGL( void )
 	{
 		ri.Com_Printf( "GLimp_Init() - qwglMakeCurrent failed\n" );
 		goto fail;
+	}
+
+	// Load WGL functions using glad
+	if( !gladLoadWGL(glw_state.hDC, wglGetProcAddress) )
+	{
+		ri.Com_Printf( "GLimp_Init() - gladLoadWGL failed\n" );
+		goto fail;
+	}
+
+	// Check if we have WGL_ARB_create_context extension
+	if( GLAD_WGL_ARB_create_context && GLAD_WGL_ARB_create_context_profile )
+	{
+		// Create Core Profile context
+		int attribs[] = {
+			WGL_CONTEXT_MAJOR_VERSION_ARB, 3,
+			WGL_CONTEXT_MINOR_VERSION_ARB, 3,
+			WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB,
+			WGL_CONTEXT_FLAGS_ARB, WGL_CONTEXT_DEBUG_BIT_ARB,
+			0
+		};
+
+		HGLRC newContext = qwglCreateContextAttribsARB( glw_state.hDC, 0, attribs );
+		if( newContext )
+		{
+			// Delete old context and use new Core Profile context
+			wglDeleteContext( glw_state.hGLRC );
+			glw_state.hGLRC = newContext;
+			
+			if( !wglMakeCurrent( glw_state.hDC, glw_state.hGLRC ) )
+			{
+				ri.Com_Printf( "GLimp_Init() - Failed to make Core Profile context current\n" );
+				goto fail;
+			}
+			
+			ri.Com_Printf( "Created OpenGL 3.3 Core Profile context\n" );
+		}
+		else
+		{
+			ri.Com_Printf( "Failed to create Core Profile context, using compatibility context\n" );
+		}
+	}
+	else
+	{
+		ri.Com_Printf( "WGL_ARB_create_context not available, using compatibility context\n" );
 	}
 
 	/*
@@ -616,12 +663,30 @@ void GLimp_UpdatePendingWindowSurface( void )
 */
 bool GLimp_SharedContext_Create( void **context, void **surface )
 {
-	HGLRC ctx = wglCreateContext( glw_state.hDC );
+	HGLRC ctx;
+	
+	if( GLAD_WGL_ARB_create_context && GLAD_WGL_ARB_create_context_profile )
+	{
+		// Create Core Profile shared context
+		int attribs[] = {
+			WGL_CONTEXT_MAJOR_VERSION_ARB, 3,
+			WGL_CONTEXT_MINOR_VERSION_ARB, 3,
+			WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
+			0
+		};
+		
+		ctx = qwglCreateContextAttribsARB( glw_state.hDC, glw_state.hGLRC, attribs );
+	}
+	else
+	{
+		// Fallback to compatibility context
+		ctx = wglCreateContext( glw_state.hDC );
+	}
+	
 	if( !ctx ) {
 		return false;
 	}
 
-	wglShareLists( glw_state.hGLRC, ctx );
 	*context = ctx;
 	if( surface )
 		*surface = NULL;

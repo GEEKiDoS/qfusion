@@ -93,10 +93,11 @@ bool R_InitKTXContext(struct ktx_context_s *cntx, uint8_t *memory, size_t size, 
 	if( cntx->type == 0 ) {
 		switch( cntx->internalFormat ) {
 			case GL_ETC1_RGB8_OES:
-				cntx->desc = R_BaseFormatDef( R_FORMAT_ETC1_R8G8B8_OES );
+				cntx->internalFormat = GL_COMPRESSED_RGB8_ETC2;
+				cntx->desc = R_BaseFormatDef( R_FORMAT_ETC2_R8G8B8_UNORM );
 				break;
 			case GL_COMPRESSED_RGB8_ETC2:
-				cntx->desc  = R_BaseFormatDef( R_FORMAT_ETC2_R8G8B8_UNORM );
+				cntx->desc = R_BaseFormatDef( R_FORMAT_ETC2_R8G8B8_UNORM );
 				break;
 			default:
 				err->type = KTX_ERR_UNHANDLED_TEXTURE_TYPE;

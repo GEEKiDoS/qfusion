@@ -11,6 +11,7 @@ file(GLOB REF_GL_HEADERS
 	"../qcommon/qfiles.h"
 	"../qalgo/*.h"
 	"${REF_BASE_DIR}/*.h"
+        "glad/*.h"
 	)
 
 file(GLOB REF_GL_COMMON_SOURCES
@@ -22,6 +23,7 @@ file(GLOB REF_GL_COMMON_SOURCES
 	"../qalgo/*.c"
 	"../qcommon/bsp.c"
 	"../qcommon/patch.c"
+	"glad/*.c"
 	)
 
 file(GLOB STB_HEADERS
