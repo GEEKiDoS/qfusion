@@ -248,4 +248,6 @@ void RP_UpdateShadowsUniforms( int elem, int numShadows, const shadowGroup_t **g
 
 void RP_UpdateInstancesUniforms( int elem, unsigned int numInstances, instancePoint_t *instances );
 
+void RP_UpdateLightmapUniforms( int elem, const image_t *lightmapTexture );
+
 #endif // R_PROGRAM_H

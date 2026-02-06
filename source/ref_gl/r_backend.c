@@ -301,9 +301,14 @@ void RB_LoadObjectMatrix( const mat4_t m, const mat4_t last )
 	Matrix4_MultiplyFast( rb.cameraMatrix, m, rb.modelviewMatrix );
 	Matrix4_Multiply( rb.projectionMatrix, rb.modelviewMatrix, rb.modelviewProjectionMatrix );
 
-	// Calculate last mvp for motion vector
-	Matrix4_MultiplyFast( rb.lastCameraMatrix, last, rb.lastModelViewMatrix );
-	Matrix4_Multiply( rb.lastProjectionMatrix, rb.lastModelViewMatrix, rb.lastModelViewProjectionMatrix );
+	// Calculate last mvp for motion vector if main view
+	if( rb.renderFlags & (RF_PORTALVIEW | RF_MIRRORVIEW | RF_ENVVIEW | RF_SHADOWMAPVIEW) ) {
+		Matrix4_Copy( rb.modelviewMatrix, rb.lastModelViewMatrix );
+		Matrix4_Copy( rb.modelviewProjectionMatrix, rb.lastModelViewProjectionMatrix );
+	} else {
+		Matrix4_MultiplyFast( rb.lastCameraMatrix, last, rb.lastModelViewMatrix );
+		Matrix4_Multiply( rb.lastProjectionMatrix, rb.lastModelViewMatrix, rb.lastModelViewProjectionMatrix );
+	}
 
 	RB_ViewmodelHack( false );
 }
@@ -316,7 +321,12 @@ void RB_LoadProjectionMatrix( const mat4_t m, const mat4_t last )
 	Matrix4_Copy( m, rb.projectionMatrix );
 	Matrix4_Copy( last, rb.lastProjectionMatrix );
 	Matrix4_Multiply( m, rb.modelviewMatrix, rb.modelviewProjectionMatrix );
-	Matrix4_Multiply( last, rb.lastModelViewMatrix, rb.lastModelViewProjectionMatrix );
+
+	if( rb.renderFlags & ( RF_PORTALVIEW | RF_MIRRORVIEW | RF_ENVVIEW | RF_SHADOWMAPVIEW ) ) {
+		Matrix4_Copy( rb.modelviewProjectionMatrix, rb.lastModelViewProjectionMatrix );
+	} else {
+		Matrix4_Multiply( last, rb.lastModelViewMatrix, rb.lastModelViewProjectionMatrix );
+	}
 }
 
 /*

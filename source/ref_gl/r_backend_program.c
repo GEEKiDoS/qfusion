@@ -964,9 +964,10 @@ static void RB_RenderMeshGLSL_Material( const shaderpass_t *pass, r_glslfeat_t p
 			lightStyle = rb.superLightStyle;
 
 			// bind lightmap textures and set program's features for lightstyles
-			for( i = 0; i < MAX_LIGHTMAPS && lightStyle->lightmapStyles[i] != 255; i++ )
-				RB_BindImage( i+4, rsh.worldBrushModel->lightmapImages[lightStyle->lightmapNum[i]] );
-
+			for( i = 0; i < MAX_LIGHTMAPS && lightStyle->lightmapStyles[i] != 255; i++ ) {
+				RB_BindImage( i + 4, rsh.worldBrushModel->lightmapImages[lightStyle->lightmapNum[i]] );
+			}
+			
 			programFeatures |= ( i * GLSL_SHADER_MATERIAL_LIGHTSTYLE0 );
 
 			if( mapConfig.lightmapArrays )
@@ -1075,6 +1076,10 @@ static void RB_RenderMeshGLSL_Material( const shaderpass_t *pass, r_glslfeat_t p
 		// r_drawflat
 		if( programFeatures & GLSL_SHADER_COMMON_DRAWFLAT ) {
 			RP_UpdateDrawFlatUniforms( program, rsh.wallColor, rsh.floorColor );
+		}
+
+		if( rb.superLightStyle && rb.superLightStyle->lightmapNum[0] >= 0 ) {
+			RP_UpdateLightmapUniforms( program, rsh.worldBrushModel->lightmapImages[rb.superLightStyle->lightmapNum[0]] );
 		}
 
 		RB_DrawElementsReal( &rb.drawElements );
@@ -1523,8 +1528,9 @@ static void RB_RenderMeshGLSL_Q3AShader( const shaderpass_t *pass, r_glslfeat_t 
 		int i;
 
 		// bind lightmap textures and set program's features for lightstyles
-		for( i = 0; i < MAX_LIGHTMAPS && lightStyle->lightmapStyles[i] != 255; i++ )
-			RB_BindImage( i+4, rsh.worldBrushModel->lightmapImages[lightStyle->lightmapNum[i]] ); // lightmap
+		for( i = 0; i < MAX_LIGHTMAPS && lightStyle->lightmapStyles[i] != 255; i++ ) {
+			RB_BindImage( i + 4, rsh.worldBrushModel->lightmapImages[lightStyle->lightmapNum[i]] ); // lightmap
+		}
 		programFeatures |= ( i * GLSL_SHADER_Q3_LIGHTSTYLE0 );
 		if( mapConfig.lightmapArrays )
 			programFeatures |= GLSL_SHADER_Q3_LIGHTMAP_ARRAYS;
@@ -1553,6 +1559,10 @@ static void RB_RenderMeshGLSL_Q3AShader( const shaderpass_t *pass, r_glslfeat_t 
 		// dynamic lights
 		if( isLightmapped || isWorldVertexLight ) {
 			RP_UpdateDynamicLightsUniforms( program, lightStyle, e->origin, e->axis, rb.currentDlightBits );
+		}
+
+		if( rb.superLightStyle && rb.superLightStyle->lightmapNum[0] >= 0 ) {
+			RP_UpdateLightmapUniforms( program, rsh.worldBrushModel->lightmapImages[rb.superLightStyle->lightmapNum[0]] );
 		}
 
 		// r_drawflat

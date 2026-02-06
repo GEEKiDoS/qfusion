@@ -1685,18 +1685,8 @@ void CG_Draw2DView( void )
 
 void CG_DrawFPS( void )
 {
-	static int64_t last_usec = 0;
-	static float fps_smoothed = 0;
-
-	int64_t usec = trap_Microseconds();
-
-	int64_t ft = usec - last_usec;
-	last_usec = usec;
-
-	float ft_msec = ft / 1000.f;
-	float fps = 1000.f / ft_msec;
-
-	fps_smoothed = fps_smoothed * 0.9f + fps * 0.1f;
+	int fps = RF_GetAverageFramerate();
+	float ft_msec = 1000.0 / fps;
 
 	int lineHeight = trap_SCR_FontHeight( cgs.fontSystemTiny );
 
@@ -1728,7 +1718,7 @@ void CG_DrawFPS( void )
 	}
 
 	if( cg_showFPS->integer >= 1 ) {
-		sprintf_s( text, "%.2f FPS", fps );
+		sprintf_s( text, "%d FPS", fps );
 		trap_SCR_DrawString( x, y + 1, ALIGN_RIGHT_TOP, text, cgs.fontSystemTiny, vec4_t{ 0.f, 0.f, 0.f, 0.5f } );
 		trap_SCR_DrawString( x, y, ALIGN_RIGHT_TOP, text, cgs.fontSystemTiny, vec4_t{ 0.f, 1.f, 0.f, 1.0f } );
 

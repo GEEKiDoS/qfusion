@@ -2450,8 +2450,6 @@ static void R_InitScreenImagePair( const char *name, image_t ***images, bool ste
 		}
 
 		int flags = (i == FBO_TEXTURE_DEPTH) ? depthFlags : colorFlags;
-		if( i == FBO_TEXTURE_MOTION_VECTOR )
-			flags |= IT_HIGH_PRECISION;
 
 		R_InitViewportTexture( images[i], va_r( tn, sizeof( tn ), "%s_%d", name, i ), i, glConfig.width, glConfig.height, 0, flags, IMAGE_TAG_BUILTIN, 4, i, fbo );
 

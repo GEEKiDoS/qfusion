@@ -124,7 +124,8 @@ typedef struct glsl_program_s
 					
 					BlendMix,
 					
-					SoftParticlesScale;
+					SoftParticlesScale,
+					LightmapTexelSize;
 
 		// builtin uniforms
 		struct {
@@ -553,12 +554,22 @@ static int RF_CompileShader( int program, const char *programName, const char *s
 		log[sizeof( log ) - 1] = 0;
 
 		if( log[0] ) {
-			int i;
+			int line = 1;
 
-			for( i = 0; i < numStrings; i++ ) {
-				Com_Printf( "%s", strings[i] );
-				Com_Printf( "\n" );
+			for( int i = 0; i < numStrings; i++ ) {
+				char *bol = strings[i];
+				char *eol;
+				while( eol = strchr( bol, '\n' ) ) {
+					Com_Printf( "%d\t%.*s\n", line, eol - bol, bol );
+					line++;
+					bol = eol + 1;
+				}
+
+				// don't write new line
+				Com_Printf( "%d\t%s", line, bol );
 			}
+
+			Com_Printf( "\n" );
 
 			Com_Printf( S_COLOR_YELLOW "Failed to compile %s shader for program %s\n", 
 				shaderName, programName );
@@ -2313,6 +2324,18 @@ void RP_UpdateDrawFlatUniforms( int elem, const vec3_t wallColor, const vec3_t f
 		qglUniform3f( program->loc.FloorColor, floorColor[0], floorColor[1], floorColor[2] );
 }
 
+void RP_UpdateLightmapUniforms(int elem, const image_t *lightmapTexture)
+{
+	glsl_program_t *program = r_glslprograms + elem - 1;
+
+	if( program->loc.LightmapTexelSize >= 0 ) {
+		float x = 1.0f / lightmapTexture->width;
+		float y = 1.0f / lightmapTexture->height;
+
+		qglUniform2f( program->loc.LightmapTexelSize, x, y );
+	}
+}
+
 /*
 * RP_GetUniformLocations
 */
@@ -2435,6 +2458,8 @@ static void RP_GetUniformLocations( glsl_program_t *program )
 
 	program->loc.ReflectionTexMatrix = qglGetUniformLocation( program->object, "u_ReflectionTexMatrix" );
 	program->loc.VectorTexMatrix = qglGetUniformLocation( program->object, "u_VectorTexMatrix" );
+
+	program->loc.LightmapTexelSize = qglGetUniformLocation( program->object, "u_LightmapTexelSize" );
 
 	program->loc.builtin.ViewOrigin = qglGetUniformLocation( program->object, "u_QF_ViewOrigin" );
 	program->loc.builtin.ViewAxis = qglGetUniformLocation( program->object, "u_QF_ViewAxis" );
